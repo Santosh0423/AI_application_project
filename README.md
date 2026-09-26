@@ -12,10 +12,11 @@ This is documentation for the **Development of AI Applications** course final gr
 ## Problem
 
 ### Intended users
-Who are the primary target users of this application?
+UAS students who study from many lecture slides for examples PDFs and notes and who are preparing for assignments or projects and exams.
 
 ### Problem statement
-What specific problem does this application solve for those users?
+Course materials are spread into many long files, when students have a question, they have to search through dozens of pages by themself. General chatbots doesn't know the specific course content, can give answers that don't match what lecturer taught.
+StudyBuddy lets students ask questions abour their own course materials and get answer also everything runs locally, so the files stay on student's computer.
 
 ### Why AI is appropriate
 Why does this problem require AI / LLM capabilities rather than traditional deterministic software?
