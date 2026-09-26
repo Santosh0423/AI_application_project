@@ -4,9 +4,10 @@ Starter template for the **Development of AI Applications** course final group p
 
 ## Team members
 
-- Member 1 Name (email@example.com)
-- Member 2 Name (email@example.com)
-- Member 3 Name (email@example.com)
+- Santosh Sigdel (santosh23000@student.hamk.fi, santosh.sigdel900@gmail.com)
+-Puran karki (amk1002351@student.hamk.fi)
+- Manoj Bhattarai (amk1006124@student.hamk.fi)
+- Nabin Yari (amk1004480@student.hamk.fi)
 
 ## Problem
 
