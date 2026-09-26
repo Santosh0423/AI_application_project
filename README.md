@@ -1,6 +1,6 @@
 # Project name
 
-Starter template for the **Development of AI Applications** course final group project.
+This is documentation for the **Development of AI Applications** course final group project.
 
 ## Team members
 
