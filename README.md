@@ -19,8 +19,10 @@ Course materials are spread into many long files, when students have a question,
 StudyBuddy lets students ask questions abour their own course materials and get answer also everything runs locally, so the files stay on student's computer.
 
 ### Why AI is appropriate
-Why does this problem require AI / LLM capabilities rather than traditional deterministic software?
-
+Students ask questions in free-form natural language, keyword can't reliably match those questions to right content.
+Answer must be summarized and explained in simple language, not only returned as raw text.
+The same question can be asked in a different way, and the answer is often spread across several pages. Language model can combine all this pieces into a clear answer.
+Traditional software can be store and search files, but it can't understand or explain their content.
 ## Solution
 
 Briefly describe your application, its primary value proposition, and how it addresses the problem statement above.
