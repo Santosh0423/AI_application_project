@@ -25,7 +25,13 @@ The same question can be asked in a different way, and the answer is often sprea
 Traditional software can be store and search files, but it can't understand or explain their content.
 ## Solution
 
-Briefly describe your application, its primary value proposition, and how it addresses the problem statement above.
+StudyBuddy is a Gradio web app backed by a local LLM (Ollama). The student uploads course materials (PDF or text). The app splits the materials into chunks, embeds them and stores them in a local vector database.
+
+Core task (main focus): The student asks a question in natural language. The app retrieves the most relevant parts of the materials, and the LLM answers using only that content, citing the file and page. If the answer isn't in the materials, the app says so instead of guessing.
+
+Optional extra (only if the core works reliably): generate a short practice quiz on a chosen topic from the same retrieved content.
+
+How it helps the user: students find answers faster, the answers match what was actually taught in the course (not general internet knowledge), students can verify every answer through the source reference, and their files stay private because everything runs locally.
 
 ## Main user workflow
 
