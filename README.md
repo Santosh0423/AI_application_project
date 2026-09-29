@@ -5,7 +5,7 @@ This is documentation for the **Development of AI Applications** course final gr
 ## Team members
 
 - Santosh Sigdel (santosh23000@student.hamk.fi, santosh.sigdel900@gmail.com)
--Puran karki (amk1002351@student.hamk.fi)
+- Puran karki (amk1002351@student.hamk.fi)
 - Manoj Bhattarai (amk1006124@student.hamk.fi)
 - Nabin Yari (amk1004480@student.hamk.fi)
 
@@ -35,9 +35,11 @@ How it helps the user: students find answers faster, the answers match what was 
 
 ## Main user workflow
 
-1. **User Input:** The user submits a prompt or query via the Gradio user interface.
-2. **Processing & Guardrails:** The application service layer (`src/services/ai_service.py`) validates and formats the request.
-3. **Model Response:** The model client calls Ollama locally and returns the response back through the service layer to the UI.
+1. Upload materials: The user uploads PDF or text files in the Gradio UI. The service layer extracts text, splits it into chunks, creates embeddings and stores them in the vector database.
+2. User input: The user types a question about the course materials.
+3. Processing and guardrails: src/services/ai_service.py validates the input (for example empty or too-long input, or no  uploaded files) and retrieves the most relevant chunks.
+4. Model response: The model client sends a prompt containing the retrieved context to Ollama. The answer is returned through the service layer to the UI together with the source references.
+5. Verify: The user can open the cited file and page to check the answer.
 
 ## Architecture
 
