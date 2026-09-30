@@ -1,11 +1,11 @@
-# Project name
+# StudyBuddy – AI Study Assistant for Course Materials
 
 This is documentation for the **Development of AI Applications** course final group project.
 
 ## Team members
 
 - Santosh Sigdel (santosh23000@student.hamk.fi, santosh.sigdel900@gmail.com)
--Puran karki (amk1002351@student.hamk.fi)
+- Puran karki (amk1002351@student.hamk.fi)
 - Manoj Bhattarai (amk1006124@student.hamk.fi)
 - Nabin Yari (amk1004480@student.hamk.fi)
 
@@ -19,17 +19,27 @@ Course materials are spread into many long files, when students have a question,
 StudyBuddy lets students ask questions abour their own course materials and get answer also everything runs locally, so the files stay on student's computer.
 
 ### Why AI is appropriate
-Why does this problem require AI / LLM capabilities rather than traditional deterministic software?
-
+Students ask questions in free-form natural language, keyword can't reliably match those questions to right content.
+Answer must be summarized and explained in simple language, not only returned as raw text.
+The same question can be asked in a different way, and the answer is often spread across several pages. Language model can combine all this pieces into a clear answer.
+Traditional software can be store and search files, but it can't understand or explain their content.
 ## Solution
 
-Briefly describe your application, its primary value proposition, and how it addresses the problem statement above.
+StudyBuddy is a Gradio web app backed by a local LLM (Ollama). The student uploads course materials (PDF or text). The app splits the materials into chunks, embeds them and stores them in a local vector database.
+
+Core task (main focus): The student asks a question in natural language. The app retrieves the most relevant parts of the materials, and the LLM answers using only that content, citing the file and page. If the answer isn't in the materials, the app says so instead of guessing.
+
+Optional extra (only if the core works reliably): generate a short practice quiz on a chosen topic from the same retrieved content.
+
+How it helps the user: students find answers faster, the answers match what was actually taught in the course (not general internet knowledge), students can verify every answer through the source reference, and their files stay private because everything runs locally.
 
 ## Main user workflow
 
-1. **User Input:** The user submits a prompt or query via the Gradio user interface.
-2. **Processing & Guardrails:** The application service layer (`src/services/ai_service.py`) validates and formats the request.
-3. **Model Response:** The model client calls Ollama locally and returns the response back through the service layer to the UI.
+1. Upload materials: The user uploads PDF or text files in the Gradio UI. The service layer extracts text, splits it into chunks, creates embeddings and stores them in the vector database.
+2. User input: The user types a question about the course materials.
+3. Processing and guardrails: src/services/ai_service.py validates the input (for example empty or too-long input, or no  uploaded files) and retrieves the most relevant chunks.
+4. Model response: The model client sends a prompt containing the retrieved context to Ollama. The answer is returned through the service layer to the UI together with the source references.
+5. Verify: The user can open the cited file and page to check the answer.
 
 ## Architecture
 
@@ -135,8 +145,18 @@ Refer to [`evaluation/README.md`](evaluation/README.md) for guidelines on defini
 
 ## Known limitations
 
-- Highlight known system limitations, unhandled edge cases, or boundaries of current capabilities.
+- Scanned PDFs without a text layer can't be read, because OCR isn't planned.
+- A small local model may give weaker answers than large cloud models, and it can still make mistakes.
+- Complex tables, formulas and diagrams in slides may not be understood correctly.
+- Performance depends on the user's computer, and answers may be slow without a GPU.
+- The similarity threshold (`MIN_SIMILARITY`) is a simple heuristic and may need tuning for other embedding models.
+- One shared document library is used for everyone who opens the app; there are no separate user accounts.
 
 ## Future improvements
 
-- List planned feature enhancements, architectural refactorings, or future capabilities.
+- Practice quiz generation from the materials (if not completed in the main scope).
+- Memory: save quiz history and focus on the student's weak topics.
+- Support for more file types (PowerPoint, Word).
+- OCR for scanned documents.
+- Flashcard export (for example to Anki).
+- Multi-language support (Finnish and English).
