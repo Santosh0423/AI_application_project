@@ -141,19 +141,15 @@ pytest
 
 ## Evaluation
 
-The evaluation uses the sample notes in [`data/sample/`](data/sample/) and the 12 cases in [`evaluation/test_cases.json`](evaluation/test_cases.json):
+We will evaluate the application with representative test cases in [`evaluation/test_cases.json`](evaluation/test_cases.json), using sample course materials:
 
-| Category | Cases | What is checked |
+| Category | Planned cases | What will be checked |
 |---|---|---|
-| Successful | 5 | Correct answer from the materials, with the right source |
-| Difficult | 3 | Paraphrased question, multi-part question, Finnish question |
-| Failure | 4 | Out-of-scope question, prompt injection, empty input, too-long input |
+| Successful | ~5 | Correct answer from the materials, with the right file and page |
+| Difficult | ~3 | Paraphrased questions, questions needing several pages, a question in Finnish |
+| Failure | ~4 | Out-of-scope question, prompt injection, empty input, too-long input |
 
-`evaluation/run_evaluation.py` runs every case through the real application, writes the actual answers into `test_cases.json`, and gives a first automatic pass/fail (expected success, "found in materials" flag, keywords). We then read every answer ourselves, correct the status where needed, and summarize the results in [`evaluation/evaluation_results.md`](evaluation/evaluation_results.md).
-
-In addition, 25 automated unit tests (`pytest`) cover chunking, the vector store, input validation, invalid JSON with retry, fallback sources, and Ollama connection / missing-model errors.
-
-**Results:** **
+**Planned metrics:** answer correctness, citation correctness (right file and page), correct refusal for questions the materials don't cover, and response time. Unit tests (`pytest`) will cover input validation, chunking, retrieval and error handling. Results will be summarized in [`evaluation/evaluation_results.md`](evaluation/evaluation_results.md).
 
 ## Known limitations
 
