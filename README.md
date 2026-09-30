@@ -112,18 +112,19 @@ environment.yml             Conda environment and dependencies
 
 ## Additional AI capability
 
-Select at least one additional capability to implement for your final project:
-
-- [ ] RAG (Retrieval-Augmented Generation)
-- [ ] Tools / External API integration
-- [ ] Model Context Protocol (MCP)
-- [ ] Agentic workflow (Model-selected actions based on observations)
-- [ ] Memory / Persistent state
-- [ ] Multimodal interaction (Text + Images)
-- [ ] Other: ______________________
+- [x] RAG (Retrieval-Augmented Generation)
+- [] Tools / External API integration
+- [] Model Context Protocol (MCP)
+- [] Agentic workflow (Model-selected actions based on observations)
+- [] Memory / Persistent state
+- [] Multimodal interaction (Text + Images)
+- [] Other: ______________________
 
 ### Capability justification
-Explain why the selected capability is useful and necessary for your application's user problem.
+The LLM doesn't know the student's course materials, and the materials are too long to fit into a single prompt. **RAG** solves this problem: it retrieves only the relevant parts of the uploaded files and gives them to the model as context. This:
+- keeps answers grounded in the actual course content and reduces hallucinations,
+- lets the app show **which file and page** an answer came from, so students can verify it,
+- works with any course, because students just upload new materials and no retraining is needed.
 
 ## Setup
 
@@ -185,9 +186,15 @@ pytest
 
 ## Evaluation
 
-Describe your evaluation methodology and summarize key results. Starter test cases can be found in [`evaluation/test_cases.json`](evaluation/test_cases.json).
+We will evaluate the application with representative test cases in [`evaluation/test_cases.json`](evaluation/test_cases.json), using sample course materials:
 
-Refer to [`evaluation/README.md`](evaluation/README.md) for guidelines on defining success, edge cases, and failure scenarios.
+| Category | Planned cases | What will be checked |
+|---|---|---|
+| Successful | ~5 | Correct answer from the materials, with the right file and page |
+| Difficult | ~3 | Paraphrased questions, questions needing several pages, a question in Finnish |
+| Failure | ~4 | Out-of-scope question, prompt injection, empty input, too-long input |
+
+**Planned metrics:** answer correctness, citation correctness (right file and page), correct refusal for questions the materials don't cover, and response time. Unit tests (`pytest`) will cover input validation, chunking, retrieval and error handling. Results will be summarized in [`evaluation/evaluation_results.md`](evaluation/evaluation_results.md).
 
 ## Known limitations
 
