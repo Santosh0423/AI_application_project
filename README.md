@@ -1,4 +1,4 @@
-# Project name
+# StudyBuddy – AI Study Assistant for Course Materials
 
 This is documentation for the **Development of AI Applications** course final group project.
 
@@ -43,7 +43,7 @@ How it helps the user: students find answers faster, the answers match what was 
 
 ## Architecture
 
-Below is the initial starter architecture. As your project evolves with additional capabilities, replace or extend this diagram in [`docs/architecture.md`](docs/architecture.md).
+Full details and the data flow are in [`docs/architecture.md`](docs/architecture.md), and the design decisions are in [`docs/project-decisions.md`](docs/project-decisions.md).
 
 ```text
 User
@@ -51,10 +51,12 @@ User
 Gradio UI (app/ui.py)
   ↓
 Application / AI Service (src/services/ai_service.py)
+  ├──→ RAG capability (src/capabilities/rag.py)
+  │       document loading, chunking, NumPy vector store (data/index/)
   ↓
 Model Client (src/models/model_client.py)
   ↓
-Ollama (Local LLM Server)
+Ollama (Local LLM Server: llama3.2 + nomic-embed-text)
 ```
 
 > **Core Architectural Rule:** The user interface must NEVER communicate directly with the model client or Ollama. All interactions must pass through the service layer (`ai_service.py`).
@@ -140,14 +142,30 @@ pytest
 
 ## Evaluation
 
-Describe your evaluation methodology and summarize key results. Starter test cases can be found in [`evaluation/test_cases.json`](evaluation/test_cases.json).
+We will evaluate the application with representative test cases in [`evaluation/test_cases.json`](evaluation/test_cases.json), using sample course materials:
 
-Refer to [`evaluation/README.md`](evaluation/README.md) for guidelines on defining success, edge cases, and failure scenarios.
+| Category | Planned cases | What will be checked |
+|---|---|---|
+| Successful | ~5 | Correct answer from the materials, with the right file and page |
+| Difficult | ~3 | Paraphrased questions, questions needing several pages, a question in Finnish |
+| Failure | ~4 | Out-of-scope question, prompt injection, empty input, too-long input |
+
+**Planned metrics:** answer correctness, citation correctness (right file and page), correct refusal for questions the materials don't cover, and response time. Unit tests (`pytest`) will cover input validation, chunking, retrieval and error handling. Results will be summarized in [`evaluation/evaluation_results.md`](evaluation/evaluation_results.md).
 
 ## Known limitations
 
-- Highlight known system limitations, unhandled edge cases, or boundaries of current capabilities.
+- Scanned PDFs without a text layer can't be read, because OCR isn't planned.
+- A small local model may give weaker answers than large cloud models, and it can still make mistakes.
+- Complex tables, formulas and diagrams in slides may not be understood correctly.
+- Performance depends on the user's computer, and answers may be slow without a GPU.
+- The similarity threshold (`MIN_SIMILARITY`) is a simple heuristic and may need tuning for other embedding models.
+- One shared document library is used for everyone who opens the app; there are no separate user accounts.
 
 ## Future improvements
 
-- List planned feature enhancements, architectural refactorings, or future capabilities.
+- Practice quiz generation from the materials (if not completed in the main scope).
+- Memory: save quiz history and focus on the student's weak topics.
+- Support for more file types (PowerPoint, Word).
+- OCR for scanned documents.
+- Flashcard export (for example to Anki).
+- Multi-language support (Finnish and English).
