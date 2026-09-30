@@ -145,8 +145,18 @@ Refer to [`evaluation/README.md`](evaluation/README.md) for guidelines on defini
 
 ## Known limitations
 
-- Highlight known system limitations, unhandled edge cases, or boundaries of current capabilities.
+- Scanned PDFs without a text layer can't be read, because OCR isn't planned.
+- A small local model may give weaker answers than large cloud models, and it can still make mistakes.
+- Complex tables, formulas and diagrams in slides may not be understood correctly.
+- Performance depends on the user's computer, and answers may be slow without a GPU.
+- The similarity threshold (`MIN_SIMILARITY`) is a simple heuristic and may need tuning for other embedding models.
+- One shared document library is used for everyone who opens the app; there are no separate user accounts.
 
 ## Future improvements
 
-- List planned feature enhancements, architectural refactorings, or future capabilities.
+- Practice quiz generation from the materials (if not completed in the main scope).
+- Memory: save quiz history and focus on the student's weak topics.
+- Support for more file types (PowerPoint, Word).
+- OCR for scanned documents.
+- Flashcard export (for example to Anki).
+- Multi-language support (Finnish and English).
