@@ -51,10 +51,12 @@ User
 Gradio UI (app/ui.py)
   ↓
 Application / AI Service (src/services/ai_service.py)
+  ├──→ RAG capability (src/capabilities/rag.py)
+  │       document loading, chunking, NumPy vector store (data/index/)
   ↓
 Model Client (src/models/model_client.py)
   ↓
-Ollama (Local LLM Server)
+Ollama (Local LLM Server: llama3.2 + nomic-embed-text)
 ```
 
 > **Core Architectural Rule:** The user interface must NEVER communicate directly with the model client or Ollama. All interactions must pass through the service layer (`ai_service.py`).
