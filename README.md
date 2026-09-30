@@ -153,7 +153,7 @@ The evaluation uses the sample notes in [`data/sample/`](data/sample/) and the 1
 
 In addition, 25 automated unit tests (`pytest`) cover chunking, the vector store, input validation, invalid JSON with retry, fallback sources, and Ollama connection / missing-model errors.
 
-**Results:** *(fill in after running the evaluation: pass rate per category and the main failure cases)*
+**Results:** **
 
 ## Known limitations
 
