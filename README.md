@@ -59,7 +59,51 @@ Model Client (src/models/model_client.py)
 Ollama (Local LLM Server: llama3.2 + nomic-embed-text)
 ```
 
+
 > **Core Architectural Rule:** The user interface must NEVER communicate directly with the model client or Ollama. All interactions must pass through the service layer (`ai_service.py`).
+
+## project structure
+StudyBuddy separates the user interface, service layer, RAG functionality and model communication.
+
+```text
+app/
+  main.py                   Application entry point (python -m app.main)
+  ui.py                     Gradio interface for uploads, questions and answers
+
+src/
+  config.py                 Application settings loaded from .env
+  services/
+    ai_service.py           Validation, ingestion, retrieval and answer orchestration
+  capabilities/
+    rag.py                  Document loading, chunking and NumPy vector store
+  models/
+    model_client.py         Ollama integration for JSON answers and embeddings
+  schemas/
+    responses.py            Pydantic schemas for answers and source references
+
+data/
+  sample/                   Sample course materials for evaluation
+  index/                    Local vector index and chunk metadata
+
+evaluation/
+  test_cases.json           Questions and expected evaluation outcomes
+  run_evaluation.py         Evaluation runner using the local models
+  evaluation_results.md     Evaluation findings and recorded results
+
+tests/                      Pytest unit tests that run without Ollama
+
+docs/
+  architecture.md           Component responsibilities and data flow
+  project-decisions.md      Design decisions and rationale
+
+environment.yml             Conda environment and dependencies
+.env.example                Example environment configuration
+```
+
+> **Core Architectural Rule:** The user interface communicates only with
+> the service layer (`src/services/ai_service.py`). The service layer
+> coordinates document processing, retrieval and model calls. The interface
+> never accesses the model client, vector store or Ollama directly.
 
 ## Model
 
