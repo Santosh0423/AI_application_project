@@ -1,4 +1,4 @@
-# Project name
+# StudyBuddy – AI Study Assistant for Course Materials
 
 This is documentation for the **Development of AI Applications** course final group project.
 
