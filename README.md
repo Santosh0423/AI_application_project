@@ -23,6 +23,7 @@ Students ask questions in free-form natural language, keyword can't reliably mat
 Answer must be summarized and explained in simple language, not only returned as raw text.
 The same question can be asked in a different way, and the answer is often spread across several pages. Language model can combine all this pieces into a clear answer.
 Traditional software can be store and search files, but it can't understand or explain their content.
+
 ## Solution
 
 StudyBuddy is a Gradio web app backed by a local LLM (Ollama). The student uploads course materials (PDF or text). The app splits the materials into chunks, embeds them and stores them in a local vector database.
@@ -58,6 +59,8 @@ Model Client (src/models/model_client.py)
   ↓
 Ollama (Local LLM Server: llama3.2 + nomic-embed-text)
 ```
+
+## Project structure
 ```text
 app/
   main.py                  entry point (python -m app.main)
