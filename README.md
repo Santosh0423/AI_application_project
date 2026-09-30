@@ -66,18 +66,19 @@ Ollama (Local LLM Server)
 
 ## Additional AI capability
 
-Select at least one additional capability to implement for your final project:
-
-- [ ] RAG (Retrieval-Augmented Generation)
-- [ ] Tools / External API integration
-- [ ] Model Context Protocol (MCP)
-- [ ] Agentic workflow (Model-selected actions based on observations)
-- [ ] Memory / Persistent state
-- [ ] Multimodal interaction (Text + Images)
-- [ ] Other: ______________________
+- [x] RAG (Retrieval-Augmented Generation)
+- [] Tools / External API integration
+- [] Model Context Protocol (MCP)
+- [] Agentic workflow (Model-selected actions based on observations)
+- [] Memory / Persistent state
+- [] Multimodal interaction (Text + Images)
+- [] Other: ______________________
 
 ### Capability justification
-Explain why the selected capability is useful and necessary for your application's user problem.
+The LLM doesn't know the student's course materials, and the materials are too long to fit into a single prompt. **RAG** solves this problem: it retrieves only the relevant parts of the uploaded files and gives them to the model as context. This:
+- keeps answers grounded in the actual course content and reduces hallucinations,
+- lets the app show **which file and page** an answer came from, so students can verify it,
+- works with any course, because students just upload new materials and no retraining is needed.
 
 ## Setup
 
