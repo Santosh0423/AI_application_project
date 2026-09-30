@@ -127,11 +127,13 @@ On Windows (Command Prompt / PowerShell):
 copy .env.example .env
 ```
 
-Ensure `.env` contains valid values for `OLLAMA_BASE_URL` and `MODEL_NAME`:
+Ensure `.env` contains valid values for `OLLAMA_BASE_URL`, `MODEL_NAME`and`EMBED_MODEL_NAME`:
 ```env
 OLLAMA_BASE_URL=http://localhost:11434
 MODEL_NAME=llama3.2
+EMBED_MODEL_NAME=nomic-embed-text
 ```
+Optional RAG settings (`CHUNK_SIZE`, `CHUNK_OVERLAP`, `TOP_K`, `MIN_SIMILARITY`) and guardrail limits (`MAX_QUESTION_CHARS`, `MAX_FILE_MB`) are listed in `.env.example`.
 
 ### 4. Start Ollama
 
@@ -139,6 +141,7 @@ Make sure Ollama is installed and running locally, then pull your configured mod
 
 ```bash
 ollama run llama3.2
+ollama pull nomic-embed-text
 ```
 
 ### 5. Run the application
@@ -149,10 +152,10 @@ Run the application from the root directory of the project:
 python -m app.main
 ```
 
-Then open your browser at `http://localhost:7860`.
+Then open your browser at `http://localhost:7860`, upload one or more files (for example `data/sample/ai_applications_notes.md`), click **Add to library**, and ask a question.
 
 ### 6. Run automated tests
-
+The unit tests use a mock model client, so they run without Ollama:
 ```bash
 pytest
 ```
