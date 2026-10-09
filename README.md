@@ -1,7 +1,7 @@
 # Finland Bureaucracy Helper
 An AI assistant that answers international students questions about Finnish bureaucracy (residence permits, DVV registration, Kela, tax card) using official documents, and shows the sources.
 
-General guidance only, not legal advice. Always check with the official authority.
+**Disclaimer:** This application provides general guidance only and is **not legal advice**. Always confirm with the official authority (Migri, DVV, Kela, Vero).
 
 ## Team members
 
@@ -11,15 +11,21 @@ General guidance only, not legal advice. Always check with the official authorit
 - Nabin Yari (amk1004480@student.hamk.fi)
 
 ### Intended users
-- International students in Finland, especially **non-EU students**
-- Students who have **just arrived** or need to **extend their permit**
-- Students who are **not fluent in Finnish**
+International students, especially **non-EU students**, who are newly arrived or living in Finland and need to deal with Finnish authorities.
   
-### Problem statement
-International students must complete many official processes, such as residence permits, address registration, Kela and tax cards. The information is spread across several government websites (Migri, DVV, Kela, Vero), written in long and formal language, and often depends on the student's situation. As a result, students waste time, miss important steps or rely on unreliable advice from friends and social media.
+### Problem 
+International students must complete many official processes, such as residence permits, address registration, Kela and tax cards. The information is spread across several government websites (Migri, DVV, Kela, Vero), International students must complete several official processes, often in a language they don't speak:
+
+- Applying for and **extending a residence permit** (Migri)
+- **Registering an address** and getting a **personal identity code** (DVV)
+- Getting a **tax card** and understanding taxes when working (Vero)
+- Understanding **Kela** benefits and eligibility
+- Knowing **work-hour limits** for students
+
+The information is **scattered across many official websites**, written in **long, formal language**, and often **depends on the student's situation** (EU or non-EU, permit type, length of stay). Students waste time, miss steps or rely on unreliable advice from social media groups.
 
 ## Main user need
-"I want a quick, clear and trustworthy answer that fits my situation and shows where the information comes from."
+"I want a quick, clear and **trustworthy** answer to my bureaucracy question that fits **my situation** and tells me **where the information comes from**.
 
 ### Why AI is appropriate
 - Students can ask questions in their own words. AI understands the meaning, not just keywords.
