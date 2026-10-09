@@ -1,6 +1,7 @@
-# StudyBuddy – AI Study Assistant for Course Materials
+# Finland Bureaucracy Helper
+An AI assistant that answers international students' questions about Finnish bureaucracy (residence permits, DVV registration, Kela, tax card) using official documents, and shows the sources.
 
-This is documentation for the **Development of AI Applications** course final group project.
+General guidance only, not legal advice. Always check with the official authority.
 
 ## Team members
 
@@ -9,20 +10,21 @@ This is documentation for the **Development of AI Applications** course final gr
 - Manoj Bhattarai (amk1006124@student.hamk.fi)
 - Nabin Yari (amk1004480@student.hamk.fi)
 
-## Problem
-
 ### Intended users
-UAS students who study from many lecture slides for examples PDFs and notes and who are preparing for assignments or projects and exams.
-
+- International students in Finland, especially **non-EU students**
+- Students who have **just arrived** or need to **extend their permit**
+- Students who are **not fluent in Finnish**
+  
 ### Problem statement
-Course materials are spread into many long files, when students have a question, they have to search through dozens of pages by themself. General chatbots doesn't know the specific course content, can give answers that don't match what lecturer taught.
-StudyBuddy lets students ask questions abour their own course materials and get answer also everything runs locally, so the files stay on student's computer.
+International students must complete many official processes, such as residence permits, address registration, Kela and tax cards. The information is spread across several government websites (Migri, DVV, Kela, Vero), written in long and formal language, and often depends on the student's situation. As a result, students waste time, miss important steps or rely on unreliable advice from friends and social media.
+
+## Main user need
+"I want a quick, clear and trustworthy answer that fits my situation and shows where the information comes from."
 
 ### Why AI is appropriate
-Students ask questions in free-form natural language, keyword can't reliably match those questions to right content.
-Answer must be summarized and explained in simple language, not only returned as raw text.
-The same question can be asked in a different way, and the answer is often spread across several pages. Language model can combine all this pieces into a clear answer.
-Traditional software can be store and search files, but it can't understand or explain their content.
+- Students can ask questions in their own words. AI understands the meaning, not just keywords.
+- AI summarises long official text into a short, clear answer.
+- With RAG, answers come from official documents with sources, so the model doesn't make up rules.
 
 ## Solution
 
