@@ -86,7 +86,7 @@ flowchart LR
 
 ---
 
-## Additional AI capability and justification
+##  6. Additional AI capability and justification
 
 ### Primary: Retrieval-Augmented Generation (RAG)
 **Why:** The main challenge is **finding and correctly using official information**. Rules about permits and benefits are specific and change over time. RAG:
@@ -104,6 +104,7 @@ The LLM doesn't know the student's course materials, and the materials are too l
 - keeps answers grounded in the actual course content and reduces hallucinations,
 - lets the app show **which file and page** an answer came from, so students can verify it,
 - works with any course, because students just upload new materials and no retraining is needed.
+  
 
 ## 10. Setup and execution
 
