@@ -110,66 +110,70 @@ The LLM doesn't know the student's course materials, and the materials are too l
 - lets the app show **which file and page** an answer came from, so students can verify it,
 - works with any course, because students just upload new materials and no retraining is needed.
 
-## Setup
+## 10. Setup and execution
 
-### 1. Create the Conda environment
+### Prerequisites
+- Python 3.10+
+- [Ollama](https://ollama.com) installed and running
+- ~6 GB free disk space for models
 
+### 1. Clone the repository
 ```bash
-conda env create -f environment.yml
+git clone <your-repo-url>
+cd <repo-folder>
 ```
 
-### 2. Activate the environment
-
+### 2. Create a virtual environment and install dependencies
 ```bash
-conda activate dev-ai-project
+python -m venv .venv
+# Windows
+.venv\Scripts\activate
+# macOS / Linux
+source .venv/bin/activate
+
+pip install -r requirements.txt
 ```
 
-### 3. Configure environment variables
-
-Copy `.env.example` to create your local `.env` configuration file:
-
-On Linux / macOS:
+### 3. Download the models
 ```bash
-cp .env.example .env
-```
-
-On Windows (Command Prompt / PowerShell):
-```powershell
-copy .env.example .env
-```
-
-Ensure `.env` contains valid values for `OLLAMA_BASE_URL`, `MODEL_NAME`and`EMBED_MODEL_NAME`:
-```env
-OLLAMA_BASE_URL=http://localhost:11434
-MODEL_NAME=llama3.2
-EMBED_MODEL_NAME=nomic-embed-text
-```
-Optional RAG settings (`CHUNK_SIZE`, `CHUNK_OVERLAP`, `TOP_K`, `MIN_SIMILARITY`) and guardrail limits (`MAX_QUESTION_CHARS`, `MAX_FILE_MB`) are listed in `.env.example`.
-
-### 4. Start Ollama
-
-Make sure Ollama is installed and running locally, then pull your configured model:
-
-```bash
-ollama run llama3.2
+ollama pull qwen2.5:7b
 ollama pull nomic-embed-text
 ```
 
-### 5. Run the application
+### 4. Configure
+```bash
+cp .env.example .env
+```
+Then edit `.env` if needed:
+```env
+OLLAMA_BASE_URL=http://localhost:11434
+LLM_MODEL=qwen2.5:7b
+EMBED_MODEL=nomic-embed-text
+CHUNK_SIZE=800
+CHUNK_OVERLAP=100
+TOP_K=4
+REQUEST_TIMEOUT=60
+```
+No API keys are required. **Never commit `.env`.**
 
-Run the application from the root directory of the project:
+### 5. Build the knowledge base
+```bash
+python scripts/ingest.py
+```
 
+### 6. Run the application
 ```bash
 python -m app.main
 ```
+Open http://localhost:7860 in your browser.
 
-Then open your browser at `http://localhost:7860`, upload one or more files (for example `data/sample/ai_applications_notes.md`), click **Add to library**, and ask a question.
-
-### 6. Run automated tests
-The unit tests use a mock model client, so they run without Ollama:
+### 7. Run tests and evaluation
 ```bash
 pytest
+python evaluation/run_eval.py
 ```
+
+---
 
 ## Evaluation
 
