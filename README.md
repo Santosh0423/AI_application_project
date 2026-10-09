@@ -10,7 +10,9 @@ An AI assistant that answers international students questions about Finnish bure
 - Manoj Bhattarai (amk1006124@student.hamk.fi)
 - Nabin Yari (amk1004480@student.hamk.fi)
 
-###2. Intended users
+## 2. Intended users and Problems 
+
+### Intended users
 International students, especially **non-EU students**, who are newly arrived or living in Finland and need to deal with Finnish authorities.
   
 ### Problem 
