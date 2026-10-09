@@ -34,8 +34,8 @@ The information is **scattered across many official websites**, written in **lon
 - AI summarises long official text into a short, clear answer.
 - With RAG, answers come from official documents with sources, so the model doesn't make up rules.
 
-## 4. proposed solution and main workflow
-## Main workflow
+## 4. Proposed solution and main workflow
+### Main workflow
 1. The user (optionally) sets a **profile**: citizenship group (EU/EEA or non-EU), status (degree student or exchange student), city.
 2. The user asks a question, e.g. _"Can I work while studying and how many hours?"_
 3. The application **retrieves** the most relevant passages from the official document collection.
