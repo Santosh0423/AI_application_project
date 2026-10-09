@@ -99,12 +99,19 @@ flowchart LR
 
 ### Not used: agents / MCP
 The workflow is always the same (retrieve → answer), so an agent that decides its own next step would add complexity and risk without real benefit. Live web access via MCP was not chosen because we want answers to come from a **controlled, verified** document set.
-### Capability justification
-The LLM doesn't know the student's course materials, and the materials are too long to fit into a single prompt. **RAG** solves this problem: it retrieves only the relevant parts of the uploaded files and gives them to the model as context. This:
-- keeps answers grounded in the actual course content and reduces hallucinations,
-- lets the app show **which file and page** an answer came from, so students can verify it,
-- works with any course, because students just upload new materials and no retraining is needed.
-  
+
+  ## 7. Model and runtime
+
+| Purpose | Model | Runtime | Why |
+|---|---|---|---|
+| Answer generation | **`qwen2.5:7b`** | Ollama (local) | Good instruction-following (stays within context, cites sources), runs on a 16 GB laptop with partial GPU offload |
+| Fallback / low-RAM | `llama3.2:3b` | Ollama (local) | Runs on 8 GB machines; selectable via `.env` |
+| Embeddings | `nomic-embed-text` | Ollama (local) | Small (~300 MB), fast, good retrieval quality for English text |
+
+**Why local inference?** It's free, needs no API keys, keeps user questions private (personal immigration situations are sensitive), and works offline after setup.
+
+**Tested hardware:** AMD Ryzen 7 5800H, 16 GB RAM, NVIDIA GTX 1650 (4 GB).
+
 
 ## 10. Setup and execution
 
