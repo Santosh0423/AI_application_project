@@ -112,6 +112,22 @@ The workflow is always the same (retrieve → answer), so an agent that decides 
 
 **Tested hardware:** AMD Ryzen 7 5800H, 16 GB RAM, NVIDIA GTX 1650 (4 GB).
 
+## 8. Knowledge sources
+
+Official, publicly available English-language guidance:
+
+| Authority | Topics |
+|---|---|
+| **Migri** (Finnish Immigration Service), migri.fi | Student residence permits, extensions, working rights, EU registration |
+| **DVV** (Digital and Population Data Services Agency), dvv.fi | Address registration, personal identity code |
+| **Kela**, kela.fi | Eligibility for social security, health insurance card |
+| **Vero** (Finnish Tax Administration), vero.fi | Tax card, taxation of student work |
+| **InfoFinland**, infofinland.fi | General guidance for newcomers |
+| **HAMK** international student pages | Arrival checklist, local practicalities |
+
+The date each document was collected is stored in its metadata. See `data/sources.md` for the full list.
+
+
 
 ## 10. Setup and execution
 
