@@ -26,10 +26,10 @@ International students must complete many official processes, such as residence 
 
 The information is **scattered across many official websites**, written in **long, formal language**, and often **depends on the student's situation** (EU or non-EU, permit type, length of stay). Students waste time, miss steps or rely on unreliable advice from social media groups.
 
-## Main user need
+### Main user need
 "I want a quick, clear and **trustworthy** answer to my bureaucracy question that fits **my situation** and tells me **where the information comes from**.
 
-### 3. Why AI is appropriate
+## 3. Why AI is appropriate
 - Students can ask questions in their own words. AI understands the meaning, not just keywords.
 - AI summarises long official text into a short, clear answer.
 - With RAG, answers come from official documents with sources, so the model doesn't make up rules.
