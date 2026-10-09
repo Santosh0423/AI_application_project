@@ -24,24 +24,14 @@ Answer must be summarized and explained in simple language, not only returned as
 The same question can be asked in a different way, and the answer is often spread across several pages. Language model can combine all this pieces into a clear answer.
 Traditional software can be store and search files, but it can't understand or explain their content.
 
-## Solution
-
-StudyBuddy is a Gradio web app backed by a local LLM (Ollama). The student uploads course materials (PDF or text). The app splits the materials into chunks, embeds them and stores them in a local vector database.
-
-Core task (main focus): The student asks a question in natural language. The app retrieves the most relevant parts of the materials, and the LLM answers using only that content, citing the file and page. If the answer isn't in the materials, the app says so instead of guessing.
-
-Optional extra (only if the core works reliably): generate a short practice quiz on a chosen topic from the same retrieved content.
-
-How it helps the user: students find answers faster, the answers match what was actually taught in the course (not general internet knowledge), students can verify every answer through the source reference, and their files stay private because everything runs locally.
-
-## Main user workflow
-
-1. Upload materials: The user uploads PDF or text files in the Gradio UI. The service layer extracts text, splits it into chunks, creates embeddings and stores them in the vector database.
-2. User input: The user types a question about the course materials.
-3. Processing and guardrails: src/services/ai_service.py validates the input (for example empty or too-long input, or no  uploaded files) and retrieves the most relevant chunks.
-4. Model response: The model client sends a prompt containing the retrieved context to Ollama. The answer is returned through the service layer to the UI together with the source references.
-5. Verify: The user can open the cited file and page to check the answer.
-
+## 4. proposed solution and main workflow
+## Main workflow
+1. The user (optionally) sets a **profile**: citizenship group (EU/EEA or non-EU), status (degree student or exchange student), city.
+2. The user asks a question, e.g. _"Can I work while studying and how many hours?"_
+3. The application **retrieves** the most relevant passages from the official document collection.
+4. The model generates a **short, plain-language answer** using **only** those passages and the user's profile.
+5. The answer is shown with **source citations** (document name + link).
+6. If the documents don't contain the answer, the assistant **says so** and points to the right authority instead of guessing.
 ## Architecture
 
 Full details and the data flow are in [`docs/architecture.md`](docs/architecture.md), and the design decisions are in [`docs/project-decisions.md`](docs/project-decisions.md).
