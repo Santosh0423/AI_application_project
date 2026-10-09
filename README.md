@@ -165,24 +165,18 @@ pytest
 
 ## Evaluation
 
-We will evaluate the application with representative test cases in [`evaluation/test_cases.json`](evaluation/test_cases.json), using sample course materials:
-
-| Category | Planned cases | What will be checked |
-|---|---|---|
-| Successful | ~5 | Correct answer from the materials, with the right file and page |
-| Difficult | ~3 | Paraphrased questions, questions needing several pages, a question in Finnish |
-| Failure | ~4 | Out-of-scope question, prompt injection, empty input, too-long input |
-
-**Planned metrics:** answer correctness, citation correctness (right file and page), correct refusal for questions the materials don't cover, and response time. Unit tests (`pytest`) will cover input validation, chunking, retrieval and error handling. Results will be summarized in [`evaluation/evaluation_results.md`](evaluation/evaluation_results.md).
+About 25 test questions covering:
+- normal questions
+- questions whose answer depends on the profile
+- questions not covered by the documents (the app should say "I don't know")
+- off-topic questions
+- failure cases (Ollama not running, empty input)
 
 ## Known limitations
 
-- Scanned PDFs without a text layer can't be read, because OCR isn't planned.
-- A small local model may give weaker answers than large cloud models, and it can still make mistakes.
-- Complex tables, formulas and diagrams in slides may not be understood correctly.
-- Performance depends on the user's computer, and answers may be slow without a GPU.
-- The similarity threshold (`MIN_SIMILARITY`) is a simple heuristic and may need tuning for other embedding models.
-- One shared document library is used for everyone who opens the app; there are no separate user accounts.
+- Not legal advice. Rules may change after the documents were collected.
+- English sources only.
+- Covers common student topics only.
 
 ## Future improvements
 
