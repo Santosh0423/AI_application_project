@@ -95,13 +95,10 @@ flowchart LR
 - lets us **update knowledge** by re-running ingestion, without retraining a model.
 
 ### Secondary: Persistent user profile (memory)
-**Why:** Many answers depend on the user's situation (e.g. EU citizens don't need a residence permit but must register their right of residence). Remembering the profile gives **more relevant answers** and avoids repeating the same context.
+**Why:** Many answers depend on the user's situation (e.g., EU citizens don't need a residence permit but must register their right of residence). Remembering the profile gives **more relevant answers** and avoids repeating the same content.
 
 ### Not used: agents / MCP
 The workflow is always the same (retrieve → answer), so an agent that decides its own next step would add complexity and risk without real benefit. Live web access via MCP was not chosen because we want answers to come from a **controlled, verified** document set.
-
----
-
 ### Capability justification
 The LLM doesn't know the student's course materials, and the materials are too long to fit into a single prompt. **RAG** solves this problem: it retrieves only the relevant parts of the uploaded files and gives them to the model as context. This:
 - keeps answers grounded in the actual course content and reduces hallucinations,
