@@ -200,11 +200,11 @@ A set of **25–30 representative questions** in `evaluation/questions.json`, ea
 
 | Category | Examples | What we check |
 |---|---|---|
-| ✅ Standard questions | "How do I extend my student residence permit?" | Correct answer, correct source |
-| 👤 Profile-dependent | Same question for EU vs non-EU profile | Answer changes correctly |
-| ❓ Not in documents | "What is the rent in Helsinki?" | Says "I don't know", no invented facts |
-| 🚫 Off-topic | "Write me a poem" | Declines politely |
-| ⚠️ Tricky / ambiguous | "Can I work full-time?" | Mentions conditions (holidays vs term time) |
+| Standard questions | "How do I extend my student residence permit?" | Correct answer, correct source |
+| Profile-dependent | Same question for EU vs non-EU profile | Answer changes correctly |
+| Not in documents | "What is the rent in Helsinki?" | Says "I don't know", no invented facts |
+| Off-topic | "Write me a poem" | Declines politely |
+| Tricky / ambiguous | "Can I work full-time?" | Mentions conditions (holidays vs term time) |
 | 🔧 Failure cases | Ollama stopped, empty input | Controlled error message |
 
 ### Metrics
