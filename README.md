@@ -3,14 +3,14 @@ An AI assistant that answers international students questions about Finnish bure
 
 **Disclaimer:** This application provides general guidance only and is **not legal advice**. Always confirm with the official authority (Migri, DVV, Kela, Vero).
 
-## Team members
+## 1. Team members
 
 - Santosh Sigdel (santosh23000@student.hamk.fi, santosh.sigdel900@gmail.com)
 - Puran karki (amk1002351@student.hamk.fi)
 - Manoj Bhattarai (amk1006124@student.hamk.fi)
 - Nabin Yari (amk1004480@student.hamk.fi)
 
-### Intended users
+###2. Intended users
 International students, especially **non-EU students**, who are newly arrived or living in Finland and need to deal with Finnish authorities.
   
 ### Problem 
@@ -27,7 +27,7 @@ The information is **scattered across many official websites**, written in **lon
 ## Main user need
 "I want a quick, clear and **trustworthy** answer to my bureaucracy question that fits **my situation** and tells me **where the information comes from**.
 
-### Why AI is appropriate
+### 3. Why AI is appropriate
 - Students can ask questions in their own words. AI understands the meaning, not just keywords.
 - AI summarises long official text into a short, clear answer.
 - With RAG, answers come from official documents with sources, so the model doesn't make up rules.
