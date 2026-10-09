@@ -187,12 +187,6 @@ python evaluation/run_eval.py
 | Vector database missing | App tells the user to run `scripts/ingest.py` |
 | Possibly outdated information | Every answer shows the disclaimer and links to the official page |
 =======
----
-
-## Evaluation
->>>>>>> 214bb2679ebcca8255d1decf0edcc7dc1cea49d5
-
----
 
 ## 12. Evaluation
 
