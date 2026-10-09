@@ -84,15 +84,21 @@ flowchart LR
 
 ---
 
-## Additional AI capability
+## Additional AI capability and justification
 
-- [x] RAG (Retrieval-Augmented Generation)
-- [] Tools / External API integration
-- [] Model Context Protocol (MCP)
-- [] Agentic workflow (Model-selected actions based on observations)
-- [] Memory / Persistent state
-- [] Multimodal interaction (Text + Images)
-- [] Other: ______________________
+### Primary: Retrieval-Augmented Generation (RAG)
+**Why:** The main challenge is **finding and correctly using official information**. Rules about permits and benefits are specific and change over time. RAG:
+- keeps answers **grounded** in official documents instead of the model's memory,
+- lets us show **citations**, which builds trust and lets users verify,
+- lets us **update knowledge** by re-running ingestion, without retraining a model.
+
+### Secondary: Persistent user profile (memory)
+**Why:** Many answers depend on the user's situation (e.g. EU citizens don't need a residence permit but must register their right of residence). Remembering the profile gives **more relevant answers** and avoids repeating the same context.
+
+### Not used: agents / MCP
+The workflow is always the same (retrieve → answer), so an agent that decides its own next step would add complexity and risk without real benefit. Live web access via MCP was not chosen because we want answers to come from a **controlled, verified** document set.
+
+---
 
 ### Capability justification
 The LLM doesn't know the student's course materials, and the materials are too long to fit into a single prompt. **RAG** solves this problem: it retrieves only the relevant parts of the uploaded files and gives them to the model as context. This:
