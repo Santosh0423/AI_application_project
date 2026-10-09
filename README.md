@@ -32,40 +32,45 @@ The information is **scattered across many official websites**, written in **lon
 - AI summarises long official text into a short, clear answer.
 - With RAG, answers come from official documents with sources, so the model doesn't make up rules.
 
-## Solution
+## 4. proposed solution and main workflow
+## Main workflow
+1. The user (optionally) sets a **profile**: citizenship group (EU/EEA or non-EU), status (degree student or exchange student), city.
+2. The user asks a question, e.g. _"Can I work while studying and how many hours?"_
+3. The application **retrieves** the most relevant passages from the official document collection.
+4. The model generates a **short, plain-language answer** using **only** those passages and the user's profile.
+5. The answer is shown with **source citations** (document name + link).
+6. If the documents don't contain the answer, the assistant **says so** and points to the right authority instead of guessing.
 
-StudyBuddy is a Gradio web app backed by a local LLM (Ollama). The student uploads course materials (PDF or text). The app splits the materials into chunks, embeds them and stores them in a local vector database.
+### Example
+```
+Profile: Non-EU, degree student, Hämeenlinna
+Q: Do I need to register my address with DVV?
 
-Core task (main focus): The student asks a question in natural language. The app retrieves the most relevant parts of the materials, and the LLM answers using only that content, citing the file and page. If the answer isn't in the materials, the app says so instead of guessing.
+A: Yes. If you live in Finland for more than one year, you should register
+   your Finnish address and get a personal identity code at DVV...
+   Sources: [DVV – Registering as a foreign resident]
+```
 
-Optional extra (only if the core works reliably): generate a short practice quiz on a chosen topic from the same retrieved content.
+## 5. Architecture
 
-How it helps the user: students find answers faster, the answers match what was actually taught in the course (not general internet knowledge), students can verify every answer through the source reference, and their files stay private because everything runs locally.
+```mermaid
+flowchart LR
+    U[User] --> UI[Gradio UI<br/>app/ui.py]
+    UI --> S[Application service<br/>app/services/assistant.py]
+    S --> P[Profile memory<br/>data/profiles.json]
+    S --> R[Retriever<br/>app/rag/retriever.py]
+    R --> V[(ChromaDB<br/>vector store)]
+    R --> E[Embedding model<br/>nomic-embed-text]
+    S --> L[LLM client<br/>app/services/llm.py]
+    L --> O[Ollama<br/>qwen2.5:7b]
+    S --> UI
 
-## Main user workflow
-
-1. Upload materials: The user uploads PDF or text files in the Gradio UI. The service layer extracts text, splits it into chunks, creates embeddings and stores them in the vector database.
-2. User input: The user types a question about the course materials.
-3. Processing and guardrails: src/services/ai_service.py validates the input (for example empty or too-long input, or no  uploaded files) and retrieves the most relevant chunks.
-4. Model response: The model client sends a prompt containing the retrieved context to Ollama. The answer is returned through the service layer to the UI together with the source references.
-5. Verify: The user can open the cited file and page to check the answer.
-
-## Architecture
-
-Full details and the data flow are in [`docs/architecture.md`](docs/architecture.md), and the design decisions are in [`docs/project-decisions.md`](docs/project-decisions.md).
-
-```text
-User
-  ↓
-Gradio UI (app/ui.py)
-  ↓
-Application / AI Service (src/services/ai_service.py)
-  ├──→ RAG capability (src/capabilities/rag.py)
-  │       document loading, chunking, NumPy vector store (data/index/)
-  ↓
-Model Client (src/models/model_client.py)
-  ↓
-Ollama (Local LLM Server: llama3.2 + nomic-embed-text)
+    subgraph Offline ingestion
+      D[Official documents<br/>data/raw/] --> I[Ingest script<br/>scripts/ingest.py]
+      I --> E
+      I --> V
+    end
+```
 ```
 
 ## Project structure
