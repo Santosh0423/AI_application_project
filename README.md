@@ -1,5 +1,5 @@
 # Finland Bureaucracy Helper
-An AI assistant that answers international students' questions about Finnish bureaucracy (residence permits, DVV registration, Kela, tax card) using official documents, and shows the sources.
+An AI assistant that answers international students questions about Finnish bureaucracy (residence permits, DVV registration, Kela, tax card) using official documents, and shows the sources.
 
 General guidance only, not legal advice. Always check with the official authority.
 
