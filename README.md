@@ -172,7 +172,6 @@ python evaluation/run_eval.py
 ```
 ## 11. Reliability and failure handling
 
-<<<<<<< HEAD
 | Situation | Behaviour |
 |---|---|
 | Ollama not running / model missing | Clear message: _"The AI model is unavailable. Please start Ollama."_ No crash. |
@@ -184,7 +183,6 @@ python evaluation/run_eval.py
 | Answer without citation | Output is checked; sources are always attached from retrieval metadata |
 | Vector database missing | App tells the user to run `scripts/ingest.py` |
 | Possibly outdated information | Every answer shows the disclaimer and links to the official page |
-=======
 
 ## 12. Evaluation
 
