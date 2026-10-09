@@ -71,33 +71,18 @@ flowchart LR
       I --> V
     end
 ```
-```
+### components
+| Component | Responsibility |
+|---|---|
+| **UI (Gradio)** | Chat interface, profile settings, display of answers and sources. Contains **no AI logic**. |
+| **Assistant service** | Orchestrates the workflow: validate input → load profile → retrieve → build prompt → call model → validate output |
+| **Retriever** | Embeds the question and finds the top-k relevant chunks in ChromaDB |
+| **Ingestion script** | Loads documents, cleans text, splits into chunks, creates embeddings, stores them with metadata (source, URL, title) |
+| **LLM client** | Reusable wrapper around Ollama with timeouts, retries and error handling |
+| **Profile memory** | Stores the user's situation (persistent JSON), so it doesn't need to be repeated |
+| **Config** | All settings (model names, top-k, chunk size, Ollama URL) in `.env`, nothing hard-coded |
 
-## Project structure
-```text
-app/
-  main.py                  entry point (python -m app.main)
-  ui.py                    Gradio interface
-src/
-  config.py                settings from .env
-  services/ai_service.py   validation, ingestion, retrieval, prompting, error handling
-  capabilities/rag.py      load_document, chunk_text, VectorStore
-  models/model_client.py   Ollama chat (JSON output) + embeddings
-  schemas/responses.py     Pydantic schemas (ModelAnswer, AnswerResponse, Source, ...)
-data/sample/               sample course notes used for evaluation
-evaluation/                test cases, evaluation script and results
-tests/                     pytest unit tests (run without Ollama)
-docs/                      architecture and decision log
-```
-> **Core Architectural Rule:** The user interface communicates only with
-> the service layer (`src/services/ai_service.py`). The service layer
-> coordinates document processing, retrieval and model calls. The interface
-> never accesses the model client, vector store or Ollama directly.
-
-## Model
-
-- **Model used:** e.g., `llama3.2` (or specified local Ollama model)
-- **Selection rationale:** Why was this specific model chosen for your project (e.g., lightweight, performance, context size)?
+---
 
 ## Additional AI capability
 
