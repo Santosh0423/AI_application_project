@@ -126,7 +126,41 @@ Official, publicly available English-language guidance:
 | **HAMK** international student pages | Arrival checklist, local practicalities |
 
 The date each document was collected is stored in its metadata. See `data/sources.md` for the full list.
+## 9. Project structure
 
+```
+.
+├── app/
+│   ├── main.py              # Entry point, starts Gradio
+│   ├── ui.py                # Gradio interface (no AI logic)
+│   ├── config.py            # Loads settings from .env
+│   ├── services/
+│   │   ├── assistant.py     # Main application logic
+│   │   ├── llm.py           # Ollama client + error handling
+│   │   └── profile.py       # User profile memory
+│   └── rag/
+│       ├── chunker.py       # Text splitting
+│       ├── store.py         # ChromaDB wrapper
+│       └── retriever.py     # Top-k retrieval
+├── scripts/
+│   └── ingest.py            # Builds the vector database from data/raw
+├── data/
+│   ├── raw/                 # Official documents (txt / pdf / md)
+│   └── sources.md           # Source list with URLs and dates
+├── evaluation/
+│   ├── questions.json       # Test cases with expected answers/sources
+│   ├── run_eval.py          # Runs evaluation and saves results
+│   └── results.md           # Recorded results and analysis
+├── tests/                   # Unit tests
+├── docs/
+│   ├── architecture.md
+│   └── decisions.md         # Technical decision records
+├── .env.example
+├── requirements.txt
+└── README.md
+```
+
+_(Adapt folder names to the starter template's structure.)_
 
 
 ## 10. Setup and execution
