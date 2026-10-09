@@ -32,22 +32,37 @@ Traditional software can be store and search files, but it can't understand or e
 4. The model generates a **short, plain-language answer** using **only** those passages and the user's profile.
 5. The answer is shown with **source citations** (document name + link).
 6. If the documents don't contain the answer, the assistant **says so** and points to the right authority instead of guessing.
-## Architecture
 
-Full details and the data flow are in [`docs/architecture.md`](docs/architecture.md), and the design decisions are in [`docs/project-decisions.md`](docs/project-decisions.md).
+### Example
+```
+Profile: Non-EU, degree student, Hämeenlinna
+Q: Do I need to register my address with DVV?
 
-```text
-User
-  ↓
-Gradio UI (app/ui.py)
-  ↓
-Application / AI Service (src/services/ai_service.py)
-  ├──→ RAG capability (src/capabilities/rag.py)
-  │       document loading, chunking, NumPy vector store (data/index/)
-  ↓
-Model Client (src/models/model_client.py)
-  ↓
-Ollama (Local LLM Server: llama3.2 + nomic-embed-text)
+A: Yes. If you live in Finland for more than one year, you should register
+   your Finnish address and get a personal identity code at DVV...
+   Sources: [DVV – Registering as a foreign resident]
+```
+
+## 5. Architecture
+
+```mermaid
+flowchart LR
+    U[User] --> UI[Gradio UI<br/>app/ui.py]
+    UI --> S[Application service<br/>app/services/assistant.py]
+    S --> P[Profile memory<br/>data/profiles.json]
+    S --> R[Retriever<br/>app/rag/retriever.py]
+    R --> V[(ChromaDB<br/>vector store)]
+    R --> E[Embedding model<br/>nomic-embed-text]
+    S --> L[LLM client<br/>app/services/llm.py]
+    L --> O[Ollama<br/>qwen2.5:7b]
+    S --> UI
+
+    subgraph Offline ingestion
+      D[Official documents<br/>data/raw/] --> I[Ingest script<br/>scripts/ingest.py]
+      I --> E
+      I --> V
+    end
+```
 ```
 
 ## Project structure
