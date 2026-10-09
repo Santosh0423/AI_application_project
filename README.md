@@ -1,7 +1,7 @@
 # Finland Bureaucracy Helper
 An AI assistant that answers international students questions about Finnish bureaucracy (residence permits, DVV registration, Kela, tax card) using official documents, and shows the sources.
 
-General guidance only, not legal advice. Always check with the official authority.
+**Disclaimer:** This application provides general guidance only and is **not legal advice**. Always confirm with the official authority (Migri, DVV, Kela, Vero).
 
 ## Team members
 
@@ -11,15 +11,21 @@ General guidance only, not legal advice. Always check with the official authorit
 - Nabin Yari (amk1004480@student.hamk.fi)
 
 ### Intended users
-- International students in Finland, especially **non-EU students**
-- Students who have **just arrived** or need to **extend their permit**
-- Students who are **not fluent in Finnish**
+International students, especially **non-EU students**, who are newly arrived or living in Finland and need to deal with Finnish authorities.
   
-### Problem statement
-International students must complete many official processes, such as residence permits, address registration, Kela and tax cards. The information is spread across several government websites (Migri, DVV, Kela, Vero), written in long and formal language, and often depends on the student's situation. As a result, students waste time, miss important steps or rely on unreliable advice from friends and social media.
+### Problem 
+International students must complete many official processes, such as residence permits, address registration, Kela and tax cards. The information is spread across several government websites (Migri, DVV, Kela, Vero), International students must complete several official processes, often in a language they don't speak:
+
+- Applying for and **extending a residence permit** (Migri)
+- **Registering an address** and getting a **personal identity code** (DVV)
+- Getting a **tax card** and understanding taxes when working (Vero)
+- Understanding **Kela** benefits and eligibility
+- Knowing **work-hour limits** for students
+
+The information is **scattered across many official websites**, written in **long, formal language**, and often **depends on the student's situation** (EU or non-EU, permit type, length of stay). Students waste time, miss steps or rely on unreliable advice from social media groups.
 
 ## Main user need
-"I want a quick, clear and trustworthy answer that fits my situation and shows where the information comes from."
+"I want a quick, clear and **trustworthy** answer to my bureaucracy question that fits **my situation** and tells me **where the information comes from**.
 
 ### Why AI is appropriate
 - Students can ask questions in their own words. AI understands the meaning, not just keywords.
@@ -104,68 +110,71 @@ The LLM doesn't know the student's course materials, and the materials are too l
 - lets the app show **which file and page** an answer came from, so students can verify it,
 - works with any course, because students just upload new materials and no retraining is needed.
 
-## Setup
+## 10. Setup and execution
 
-### 1. Create the Conda environment
+### Prerequisites
+- Python 3.10+
+- [Ollama](https://ollama.com) installed and running
+- ~6 GB free disk space for models
 
+### 1. Clone the repository
 ```bash
-conda env create -f environment.yml
+git clone <your-repo-url>
+cd <repo-folder>
 ```
 
-### 2. Activate the environment
-
+### 2. Create a virtual environment and install dependencies
 ```bash
-conda activate dev-ai-project
+python -m venv .venv
+# Windows
+.venv\Scripts\activate
+# macOS / Linux
+source .venv/bin/activate
+
+pip install -r requirements.txt
 ```
 
-### 3. Configure environment variables
-
-Copy `.env.example` to create your local `.env` configuration file:
-
-On Linux / macOS:
+### 3. Download the models
 ```bash
-cp .env.example .env
-```
-
-On Windows (Command Prompt / PowerShell):
-```powershell
-copy .env.example .env
-```
-
-Ensure `.env` contains valid values for `OLLAMA_BASE_URL`, `MODEL_NAME`and`EMBED_MODEL_NAME`:
-```env
-OLLAMA_BASE_URL=http://localhost:11434
-MODEL_NAME=llama3.2
-EMBED_MODEL_NAME=nomic-embed-text
-```
-Optional RAG settings (`CHUNK_SIZE`, `CHUNK_OVERLAP`, `TOP_K`, `MIN_SIMILARITY`) and guardrail limits (`MAX_QUESTION_CHARS`, `MAX_FILE_MB`) are listed in `.env.example`.
-
-### 4. Start Ollama
-
-Make sure Ollama is installed and running locally, then pull your configured model:
-
-```bash
-ollama run llama3.2
+ollama pull qwen2.5:7b
 ollama pull nomic-embed-text
 ```
 
-### 5. Run the application
+### 4. Configure
+```bash
+cp .env.example .env
+```
+Then edit `.env` if needed:
+```env
+OLLAMA_BASE_URL=http://localhost:11434
+LLM_MODEL=qwen2.5:7b
+EMBED_MODEL=nomic-embed-text
+CHUNK_SIZE=800
+CHUNK_OVERLAP=100
+TOP_K=4
+REQUEST_TIMEOUT=60
+```
+No API keys are required. **Never commit `.env`.**
 
-Run the application from the root directory of the project:
+### 5. Build the knowledge base
+```bash
+python scripts/ingest.py
+```
 
+### 6. Run the application
 ```bash
 python -m app.main
 ```
+Open http://localhost:7860 in your browser.
 
-Then open your browser at `http://localhost:7860`, upload one or more files (for example `data/sample/ai_applications_notes.md`), click **Add to library**, and ask a question.
-
-### 6. Run automated tests
-The unit tests use a mock model client, so they run without Ollama:
+### 7. Run tests and evaluation
 ```bash
 pytest
+python evaluation/run_eval.py
 ```
 ## 11. Reliability and failure handling
 
+<<<<<<< HEAD
 | Situation | Behaviour |
 |---|---|
 | Ollama not running / model missing | Clear message: _"The AI model is unavailable. Please start Ollama."_ No crash. |
@@ -177,6 +186,11 @@ pytest
 | Answer without citation | Output is checked; sources are always attached from retrieval metadata |
 | Vector database missing | App tells the user to run `scripts/ingest.py` |
 | Possibly outdated information | Every answer shows the disclaimer and links to the official page |
+=======
+---
+
+## Evaluation
+>>>>>>> 214bb2679ebcca8255d1decf0edcc7dc1cea49d5
 
 ---
 
