@@ -32,3 +32,20 @@ class UserProfile:
         if self.stay_length not in STAY_OPTIONS:
             self.stay_length = NOT_SET
         self.city = (self.city or "").strip()[:MAX_CITY_CHARS]
+        
+        
+    def is_empty(self) -> bool:
+        return self == UserProfile()
+
+    def describe(self) -> str:
+        """Short text used in the model prompt."""
+        parts = []
+        if self.citizenship != NOT_SET:
+            parts.append(f"Citizenship: {self.citizenship}")
+        if self.student_type != NOT_SET:
+            parts.append(f"Status: {self.student_type}")
+        if self.stay_length != NOT_SET:
+            parts.append(f"Planned stay in Finland: {self.stay_length}")
+        if self.city:
+            parts.append(f"City: {self.city}")
+        return "; ".join(parts) if parts else "Unknown (the user has not set a profile)"
