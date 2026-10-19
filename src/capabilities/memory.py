@@ -1,25 +1,16 @@
-"""
-Optional project capability: Memory & Persistent Conversation State.
+"""Persistent user profile (the application's memory of the user's situation)."""
 
-Implement this module only if this capability is relevant to your application's
-user problem. Remove the file if the capability is not used.
+from __future__ import annotations
 
-Conceptual Overview:
--------------------
-Memory enables an application to retain conversational context across multiple user interactions
-or persist state between user sessions.
+import json
+import logging
+from dataclasses import asdict, dataclass
+from pathlib import Path
 
-Key concepts when implementing memory:
-1. Short-term Memory (Chat History): Maintaining an ordered list of user and assistant
-   messages within the current session and appending them to model requests.
-2. Context Window Management: Truncating, summarizing, or pruning history when it exceeds
-   the model's maximum context length.
-3. Long-term / Persistent Memory: Storing user preferences, session history, or key facts
-   in local files or persistent state stores.
+logger = logging.getLogger(__name__)
 
-Note:
------
-Keep memory implementations simple and relevant to the user's workflow needs.
-"""
-
-# Implement custom conversation memory or state management below if selected.
+NOT_SET = "Not set"
+CITIZENSHIP_OPTIONS = [NOT_SET, "EU/EEA or Nordic citizen", "Non-EU citizen"]
+STUDENT_TYPE_OPTIONS = [NOT_SET, "Degree student", "Exchange student", "Graduated / looking for work"]
+STAY_OPTIONS = [NOT_SET, "Less than 1 year", "1 year or more"]
+MAX_CITY_CHARS = 60
