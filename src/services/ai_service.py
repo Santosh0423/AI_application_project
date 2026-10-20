@@ -51,8 +51,7 @@ class RetrieverLike(Protocol):
 
 
 class ChatModel(Protocol):
-    def chat(self, messages: list[dict[str, str]]) -> str: ...
-
+    def generate(self, prompt: str) -> str: ...
 
 class AIService:
     """Application service layer: the UI talks only to this class, never to Ollama directly."""
