@@ -1,97 +1,183 @@
-from typing import Optional
-from src.models.model_client import (
-    OllamaModelClient,
-    ModelClientError,
-    OllamaConnectionError,
-    ModelNotFoundError,
+"""Core application logic: validate -> retrieve -> prompt -> call model -> validate.
+
+This module has no UI code, so it can be used by the Gradio app, the
+evaluation script and the tests in exactly the same way.
+"""
+
+from __future__ import annotations
+
+import logging
+import re
+from typing import Protocol
+
+from src.capabilities.memory import UserProfile
+from src.capabilities.rag.store import IndexNotFoundError, SearchResult
+from src.models.model_client import ModelClientError
+from src.schemas.responses import AIResponse, Source
+
+logger = logging.getLogger(__name__)
+
+NOT_FOUND_TOKEN = "NOT_FOUND"
+
+SYSTEM_PROMPT = f"""You are "Finland Bureaucracy Helper", an assistant for international students in Finland.
+You help with residence permits, registration (DVV), Kela, taxes, working rights and similar official matters.
+
+Rules:
+1. Answer ONLY with information from the numbered CONTEXT passages. Never use outside knowledge.
+2. After every fact, cite the passage number in square brackets, e.g. [1] or [2][3].
+3. If the CONTEXT does not contain the answer, or the question is not about living, studying or
+   working in Finland, reply with exactly: {NOT_FOUND_TOKEN}
+4. Use the USER PROFILE to tailor the answer. If the answer depends on something the profile does not
+   say (for example EU vs non-EU), briefly explain each case.
+5. Write in plain, simple English. Use short bullet points or numbered steps. Maximum about 200 words.
+6. Do not promise outcomes and do not give legal advice. Do not invent deadlines, fees or numbers."""
+
+NOT_FOUND_MESSAGE = (
+    "I couldn't find reliable information about this in my official sources, so I won't guess.\n\n"
+    "You can check directly with:\n"
+    "- **Migri** (residence permits): https://migri.fi/en\n"
+    "- **DVV** (registration, personal identity code): https://dvv.fi/en\n"
+    "- **Kela** (social security): https://www.kela.fi/web/en\n"
+    "- **Vero** (tax card, taxes): https://www.vero.fi/en\n"
+    "- **InfoFinland** (general guidance): https://www.infofinland.fi/en\n"
+    "- Your university's international services"
 )
-from src.schemas.responses import UserRequest, AIResponse
+
+_CITATION = re.compile(r"\[(\d+)\]")
+
+
+class RetrieverLike(Protocol):
+    def retrieve(self, query: str) -> list[SearchResult]: ...
+
+
+class ChatModel(Protocol):
+    def chat(self, messages: list[dict[str, str]]) -> str: ...
 
 
 class AIService:
-    """
-    Application service layer responsible for validating user input,
-    orchestrating model client requests, and catching exceptions gracefully.
-    """
+    """Application service layer: the UI talks only to this class, never to Ollama directly."""
 
-    def __init__(self, model_client: Optional[OllamaModelClient] = None):
-        # Allow injecting custom/mock model_client for simple testing
-        self.model_client = model_client
+    def __init__(
+        self,
+        retriever: RetrieverLike | None,
+        model: ChatModel,
+        max_question_chars: int = 500,
+        history_turns: int = 2,
+    ):
+        self.retriever = retriever
+        self.model = model
+        self.max_question_chars = max_question_chars
+        self.history_turns = history_turns
 
-    def _get_client(self) -> OllamaModelClient:
-        """Returns active model client, initializing default client if none provided."""
-        if self.model_client is None:
-            self.model_client = OllamaModelClient()
-        return self.model_client
+    def answer(
+        self,
+        question: str,
+        profile: UserProfile | None = None,
+        history: list[tuple[str, str]] | None = None,
+    ) -> AIResponse:
+        profile = profile or UserProfile()
+        history = history or []
+        question = (question or "").strip()
 
-    def process_message(self, user_message: str) -> AIResponse:
-        """
-        Processes a raw user message string and returns a structured AIResponse.
-        Catches technical failures and converts them to friendly user-facing messages.
-        """
-        # 1. Validate empty input
-        if not user_message or not user_message.strip():
+        # 1. Validate input
+        if not question:
+            return AIResponse(answer="Please type a question.", status="invalid_input")
+        if len(question) > self.max_question_chars:
             return AIResponse(
-                content="Please enter a message before sending.",
-                success=False,
-                error_message="User message was empty.",
+                answer=f"Your question is too long ({len(question)} characters). "
+                f"Please keep it under {self.max_question_chars} characters.",
+                status="invalid_input",
             )
+        if self.retriever is None:
+            return AIResponse(answer=IndexNotFoundError.user_message, status="error")
 
+        # 2. Retrieve evidence
         try:
-            # 2. Schema validation
-            request = UserRequest(message=user_message.strip())
+            results = self.retriever.retrieve(self._retrieval_query(question, history))
+        except ModelClientError as exc:
+            logger.error("Retrieval failed: %s", exc)
+            return AIResponse(answer=exc.user_message, status="error")
+        if not results:
+            return AIResponse(answer=NOT_FOUND_MESSAGE, status="not_found")
 
-            # 3. Call model client
-            client = self._get_client()
-            response_text = client.generate(request.message)
+        # 3. Generate
+        messages = self._build_messages(question, profile, history, results)
+        try:
+            raw = self.model.chat(messages)
+        except ModelClientError as exc:
+            logger.error("Generation failed: %s", exc)
+            return AIResponse(answer=exc.user_message, status="error", retrieved=results)
 
-            return AIResponse(
-                content=response_text,
-                success=True,
-            )
+        # 4. Validate output
+        return self._postprocess(raw, results)
 
-        except OllamaConnectionError as err:
-            return AIResponse(
-                content=(
-                    "[Error] Could not connect to Ollama.\n\n"
-                    "Please verify that Ollama is installed and running locally on your machine."
-                ),
-                success=False,
-                error_message=str(err),
-            )
+    # ----------------------------------------------------------------- helpers
 
-        except ModelNotFoundError as err:
-            return AIResponse(
-                content=(
-                    f"[Error] The configured AI model is unavailable in Ollama.\n\n"
-                    f"Please verify your MODEL_NAME setting or run 'ollama run <model_name>'."
-                ),
-                success=False,
-                error_message=str(err),
-            )
+    @staticmethod
+    def _retrieval_query(question: str, history: list[tuple[str, str]]) -> str:
+        # Short follow-ups ("how long does it take?") need the previous question for context.
+        if history and len(question.split()) <= 6:
+            return f"{history[-1][0]} {question}"
+        return question
 
-        except ModelClientError as err:
-            return AIResponse(
-                content="[Error] An unexpected communication error occurred with the AI model.",
-                success=False,
-                error_message=str(err),
-            )
+    def _build_messages(
+        self,
+        question: str,
+        profile: UserProfile,
+        history: list[tuple[str, str]],
+        results: list[SearchResult],
+    ) -> list[dict[str, str]]:
+        context = "\n\n".join(
+            f"[{i}] ({r.chunk.authority} – {r.chunk.title})\n{r.chunk.text}"
+            for i, r in enumerate(results, start=1)
+        )
+        messages = [{"role": "system", "content": SYSTEM_PROMPT}]
+        for user_msg, bot_msg in history[-self.history_turns:] if self.history_turns else []:
+            messages.append({"role": "user", "content": user_msg})
+            messages.append({"role": "assistant", "content": bot_msg})
+        messages.append(
+            {
+                "role": "user",
+                "content": f"USER PROFILE: {profile.describe()}\n\nCONTEXT:\n{context}\n\nQUESTION: {question}",
+            }
+        )
+        return messages
 
-        except Exception as err:
-            return AIResponse(
-                content="[Error] An unexpected application error occurred.",
-                success=False,
-                error_message=str(err),
-            )
+    @staticmethod
+    def _postprocess(raw: str, results: list[SearchResult]) -> AIResponse:
+        text = raw.strip()
+        if text.upper().startswith(NOT_FOUND_TOKEN) or (NOT_FOUND_TOKEN in text and len(text) < 80):
+            return AIResponse(answer=NOT_FOUND_MESSAGE, status="not_found", retrieved=results)
 
+        cited = [int(n) for n in _CITATION.findall(text)]
+        valid = sorted({n for n in cited if 1 <= n <= len(results)})
 
-def generate_response(user_message: str, service: Optional[AIService] = None) -> str:
-    """
-    Main reusable service entry point used by the UI layer.
-    
-    Accepts user input message, passes it to the AI service, and returns
-    the generated text response (or a friendly error message).
-    """
-    active_service = service or AIService()
-    response = active_service.process_message(user_message)
-    return response.content
+        # Remove citation numbers that point to passages that don't exist.
+        text = _CITATION.sub(lambda m: m.group(0) if 1 <= int(m.group(1)) <= len(results) else "", text)
+
+        used = [results[n - 1] for n in valid] if valid else results
+
+        # One source per page; passages from the same page share a number.
+        sources: list[Source] = []
+        source_index: dict[str, int] = {}
+        for r in used:
+            key = r.chunk.url or r.chunk.title
+            if key not in source_index:
+                sources.append(
+                    Source(title=r.chunk.title, url=r.chunk.url, authority=r.chunk.authority, retrieved=r.chunk.retrieved)
+                )
+                source_index[key] = len(sources)
+
+        if valid:
+            # Renumber citations so they match the Sources list, and merge repeats like [1][1].
+            def renumber(m: re.Match) -> str:
+                chunk = results[int(m.group(1)) - 1].chunk
+                return f"[{source_index[chunk.url or chunk.title]}]"
+
+            text = _CITATION.sub(renumber, text)
+            text = re.sub(r"(\[\d+\])(\1)+", r"\1", text)
+        else:
+            text += "\n\n_Note: the model did not cite specific passages; the sources below were used as context._"
+        return AIResponse(
+            answer=text, status="answered", sources=sources, retrieved=results, cited_correctly=bool(valid)
+        )

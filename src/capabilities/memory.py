@@ -32,8 +32,7 @@ class UserProfile:
         if self.stay_length not in STAY_OPTIONS:
             self.stay_length = NOT_SET
         self.city = (self.city or "").strip()[:MAX_CITY_CHARS]
-        
-        
+
     def is_empty(self) -> bool:
         return self == UserProfile()
 
@@ -49,3 +48,23 @@ class UserProfile:
         if self.city:
             parts.append(f"City: {self.city}")
         return "; ".join(parts) if parts else "Unknown (the user has not set a profile)"
+
+
+class ProfileStore:
+    def __init__(self, path: Path):
+        self.path = path
+
+    def load(self) -> UserProfile:
+        if not self.path.exists():
+            return UserProfile()
+        try:
+            data = json.loads(self.path.read_text(encoding="utf-8"))
+            fields = UserProfile.__dataclass_fields__
+            return UserProfile(**{k: v for k, v in data.items() if k in fields and isinstance(v, str)})
+        except (OSError, ValueError, TypeError) as exc:
+            logger.warning("Could not read profile file %s: %s", self.path, exc)
+            return UserProfile()
+
+    def save(self, profile: UserProfile) -> None:
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        self.path.write_text(json.dumps(asdict(profile), indent=2), encoding="utf-8")
