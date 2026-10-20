@@ -1,42 +1,71 @@
-# Architecture Documentation
+# Architecture
 
-This document describes the baseline architectural layer of the application and provides guidance on extending it for your team project.
+## Components
 
-## Baseline Architecture
+```mermaid
+flowchart LR
+    U[Student] --> UI["Gradio UI<br/>app/ui.py"]
+    UI --> S["AI service<br/>src/services/ai_service.py<br/>validate → retrieve → prompt → validate"]
+    UI --> M["Profile memory<br/>src/capabilities/memory.py"]
+    S --> M
+    S --> R["Retriever<br/>src/capabilities/rag/retriever.py"]
+    R --> V[("Vector index<br/>data/index/")]
+    R --> C
+    S --> C["Model client<br/>src/models/model_client.py"]
+    S --> SC["Response schemas<br/>src/schemas/responses.py"]
+    C --> O["Ollama<br/>qwen2.5:7b + nomic-embed-text"]
 
-The starter application follows a clean layered separation of concerns:
-
-```text
-User
-  ↓
-Gradio UI (app/ui.py)
-  ↓
-Application / AI Service (src/services/ai_service.py)
-  ↓
-Model Client (src/models/model_client.py)
-  ↓
-Ollama (Local Inference Server)
-  ↓
-Local Model (e.g., llama3.2)
+    subgraph Offline["Offline: build the knowledge base"]
+      J["data/sources.json"] --> F["scripts/fetch_sources.py"]
+      F --> D["data/raw/*.md"]
+      D --> I["scripts/ingest.py<br/>src/capabilities/rag/ingest.py"]
+      I --> V
+    end
 ```
 
-### Core Design Rules
+The template's core rule is kept: **the UI never talks to Ollama or the model client directly.** Everything goes through `AIService`.
 
-1. **Strict UI Isolation:** The Gradio user interface (`app/ui.py`) MUST NOT directly instantiate `OllamaModelClient` or make direct API calls to Ollama. It delegates all operations to `generate_response()` in `src/services/ai_service.py`.
-2. **Controlled Failure Handling:** The model client handles low-level runtime exceptions (e.g., connection errors or missing models). The service layer converts technical exceptions into structured, user-understandable responses.
-3. **Data Schemas:** Request inputs and response structures are validated using Pydantic models in `src/schemas/responses.py`.
+| Layer | Files | Responsibility |
+|---|---|---|
+| Presentation | `app/ui.py`, `app/main.py` | Chat, profile form, system status; `main.py` wires the components together |
+| Service | `src/services/ai_service.py` | Input validation, retrieval, prompt building, output validation, error handling |
+| Schemas | `src/schemas/responses.py` | Pydantic `AIResponse` and `Source`: validated, structured output |
+| Model access | `src/models/model_client.py` | The only code that talks to Ollama: chat + embeddings, timeouts, retry, typed errors |
+| Capability: RAG | `src/capabilities/rag/` | Load and chunk documents, vector store, top-k retrieval, index building |
+| Capability: memory | `src/capabilities/memory.py` | Persistent user profile with value validation |
+| Config | `src/config.py`, `.env` | All settings in one place |
 
----
+## Request flow (one question)
 
-## Extension Points for Course Projects
+```mermaid
+sequenceDiagram
+    participant U as Student
+    participant UI as Gradio UI
+    participant S as AIService
+    participant R as Retriever
+    participant O as Ollama
 
-As your project team designs and implements your additional AI capability, extend this baseline architecture. Potential capability extensions include:
+    U->>UI: question + profile
+    UI->>S: answer(question, profile, history)
+    S->>S: validate input
+    S->>R: retrieve(query)
+    R->>O: embed("search_query: ...")
+    O-->>R: vector
+    R-->>S: top-k passages above MIN_SIMILARITY
+    alt no relevant passages
+        S-->>UI: refusal + links to authorities (no model call)
+    else passages found
+        S->>O: chat(system rules + profile + numbered passages + question)
+        O-->>S: answer with [n] citations, or NOT_FOUND
+        S->>S: validate output (citations, NOT_FOUND)
+        S-->>UI: AIResponse (answer + sources)
+    end
+    UI-->>U: answer, sources, disclaimer
+```
 
-- **RAG (Retrieval-Augmented Generation):** Insert document parsing, chunking, vector embeddings, and vector database retrieval into the service layer to ground model responses in domain documents.
-- **Tools & External APIs:** Integrate tool execution functions into the service layer allowing the model to query web services or local python utilities.
-- **Model Context Protocol (MCP):** Connect your service layer to standard MCP servers to access external tools and context providers.
-- **Agent Workflows:** Implement observation-action loops controlled by application code to handle dynamic multi-step tasks.
-- **Memory & Conversation State:** Store session history or persistent state across user interactions.
-- **Multimodal Models:** Update the model client and UI payload to pass image data to vision-enabled local models.
+## Offline ingestion
+1. `scripts/fetch_sources.py` downloads each URL in `data/sources.json`, keeps the main content (headings, paragraphs, lists), removes menus, footers and cookie banners, and saves `data/raw/<authority>-<title>.md` with a header holding the title, URL, authority and date.
+2. `scripts/ingest.py` splits each document into chunks of about 900 characters (paragraph-aware, 150-character overlap), embeds them with `nomic-embed-text` (title + text, `search_document:` prefix), and saves `data/index/vectors.npy` plus `chunks.json`.
 
-> **Instruction:** Replace or update the architecture diagram in this file as your team implements new components.
+## Testability
+`AIService` depends on *protocols* (anything with `retrieve()` / `chat()`), so the unit tests use fakes and run without Ollama.
