@@ -1,22 +1,37 @@
 # Evaluation Framework
 
-Systematic evaluation is essential for assessing whether your AI application reliably solves your target user's problem.
+We evaluate whether the Finland Bureaucracy Helper gives **correct, grounded, cited answers** and **refuses safely** when it cannot answer.
 
-## How to Conduct Evaluation
+## Test cases
 
-Students are expected to define and run manual or script-assisted evaluations against representative test cases.
+[`test_cases.json`](test_cases.json) contains **29 cases** in the template's three categories:
 
-### Test Case Categories
+| Category | Cases | Types |
+|---|---|---|
+| **Successful cases** | 17 | Standard questions with known answers in the official pages (e.g. 30 h/week work limit, €800/month, 45 credits/year, 35 % tax at source) |
+| **Difficult cases** | 4 | Profile-dependent answers (EU vs non-EU), and a short follow-up question that needs the previous question |
+| **Failure / edge cases** | 8 | In-scope questions the documents don't cover, off-topic questions, prompt injection, empty and too-long input |
 
-Your evaluation dataset in [`test_cases.json`](test_cases.json) should cover three primary categories:
+Each case has `input`, `expected_behavior`, `expected_status` and, for answerable questions, `expected_sources` (URL fragments) and `expected_keywords` (facts that must appear).
 
-1. **Successful Cases (Typical Inputs):** Standard queries or inputs that your application is designed to handle successfully under normal operating conditions.
-2. **Difficult Cases (Edge Cases):** Ambiguous queries, long inputs, unusual domain terms, or edge cases that test model robustness and retrieval/tool quality.
-3. **Failure / Adversarial Cases:** Empty inputs, malformed requests, out-of-scope questions, or connection drops that verify controlled error handling.
+## Running the evaluation
 
-## Evaluation Process
+Ollama must be running and the index built (`python scripts/ingest.py`). Then:
 
-1. **Define Test Cases:** Populate `test_cases.json` with realistic inputs and expected behaviors tailored to your user problem.
-2. **Execute System:** Run each test case through your application interface.
-3. **Log & Review:** Record `actual_result` and assign a `status` (`pass`, `fail`, `partial`).
-4. **Summarize Results:** Synthesize findings in [`evaluation_results.md`](evaluation_results.md).
+```bash
+python evaluation/run_eval.py
+```
+
+The script asks every question through the same `AIService` the UI uses, then:
+- fills in `actual_result`, `status` and `checks` in `test_cases.json`,
+- writes the summary tables to [`evaluation_results.md`](evaluation_results.md).
+
+## How a case is judged
+
+| Status | Meaning |
+|---|---|
+| **pass** | Correct outcome (answered / refused / rejected). For answered questions, the expected source is cited **and** the key facts are present |
+| **partial** | Answered, but the expected source wasn't cited or a key fact is missing |
+| **fail** | Wrong outcome, e.g. it answered when it should have refused, or the other way round |
+
+Automatic checks don't replace reading the answers. Review `actual_result` for each case and describe failures in `evaluation_results.md`.

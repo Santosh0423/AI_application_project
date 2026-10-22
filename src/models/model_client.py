@@ -1,59 +1,126 @@
-from typing import Optional
-import ollama
-from src.config import config
+"""Reusable client for the Ollama HTTP API (chat + embeddings).
+
+All model access in the application goes through this module, so the rest
+of the code never deals with HTTP details or raw Ollama errors.
+"""
+
+from __future__ import annotations
+
+import time
+from typing import Iterable
+
+import requests
 
 
 class ModelClientError(Exception):
-    """Base exception for model client failures."""
-    pass
+    """Base class for model errors. `user_message` is safe to show in the UI."""
+
+    user_message = "The AI model failed to respond. Please try again."
 
 
 class OllamaConnectionError(ModelClientError):
-    """Exception raised when Ollama service is unreachable."""
-    pass
+    user_message = (
+        "The AI model is not reachable. Make sure Ollama is installed and running "
+        "(start the Ollama app or run `ollama serve`)."
+    )
+
+
+class ModelTimeoutError(ModelClientError):
+    user_message = "The AI model took too long to answer. Please try again or ask a shorter question."
 
 
 class ModelNotFoundError(ModelClientError):
-    """Exception raised when the requested model is not found on local Ollama."""
-    pass
+    def __init__(self, model: str):
+        super().__init__(f"Model not found: {model}")
+        self.model = model
+        self.user_message = f"The model '{model}' is not downloaded. Run: ollama pull {model}"
+
+
+class ModelResponseError(ModelClientError):
+    user_message = "The AI model returned an unexpected response. Please try again."
 
 
 class OllamaModelClient:
-    """Encapsulates interaction with local Ollama inference server."""
+    def __init__(
+        self,
+        base_url: str,
+        chat_model: str,
+        embed_model: str,
+        timeout: int = 300,
+        temperature: float = 0.1,
+        retries: int = 1,
+    ):
+        self.base_url = base_url.rstrip("/")
+        self.chat_model = chat_model
+        self.embed_model = embed_model
+        self.timeout = timeout
+        self.temperature = temperature
+        self.retries = retries
 
-    def __init__(self, base_url: Optional[str] = None, model_name: Optional[str] = None):
-        self.base_url = base_url or config.ollama_base_url
-        self.model_name = model_name or config.model_name
-        self._client = ollama.Client(host=self.base_url)
+    # ------------------------------------------------------------------ public
 
-    def generate(self, prompt: str) -> str:
-        """
-        Sends a user prompt to local Ollama model and returns generated response text.
-        
-        Raises ModelClientError subclass if connection or execution fails.
-        """
+    def chat(self, messages: list[dict[str, str]]) -> str:
+        """Send chat messages and return the assistant's text."""
+        payload = {
+            "model": self.chat_model,
+            "messages": messages,
+            "stream": False,
+            "options": {"temperature": self.temperature},
+        }
+        data = self._post("/api/chat", payload, model=self.chat_model)
+        content = (data.get("message") or {}).get("content")
+        if not isinstance(content, str) or not content.strip():
+            raise ModelResponseError("Empty or malformed chat response")
+        return content.strip()
+
+    def embed(self, texts: Iterable[str]) -> list[list[float]]:
+        """Return one embedding vector per input text."""
+        texts = list(texts)
+        if not texts:
+            return []
+        data = self._post("/api/embed", {"model": self.embed_model, "input": texts}, model=self.embed_model)
+        vectors = data.get("embeddings")
+        if not isinstance(vectors, list) or len(vectors) != len(texts):
+            raise ModelResponseError("Malformed embedding response")
+        return vectors
+
+    def missing_models(self) -> list[str]:
+        """Return required models that are not downloaded. Raises if Ollama is down."""
         try:
-            response = self._client.chat(
-                model=self.model_name,
-                messages=[{"role": "user", "content": prompt}],
-            )
-            
-            # Standardize extraction from dict or chat response object
-            if isinstance(response, dict):
-                return response.get("message", {}).get("content", "")
-            elif hasattr(response, "message") and hasattr(response.message, "content"):
-                return response.message.content
-            return str(response)
+            resp = requests.get(f"{self.base_url}/api/tags", timeout=5)
+            resp.raise_for_status()
+        except requests.RequestException as exc:
+            raise OllamaConnectionError(str(exc)) from exc
+        installed = {m.get("name", "") for m in resp.json().get("models", [])}
+        # "nomic-embed-text" is installed as "nomic-embed-text:latest"
+        installed |= {name.removesuffix(":latest") for name in installed}
+        return [m for m in (self.chat_model, self.embed_model) if m not in installed]
 
-        except Exception as err:
-            err_str = str(err).lower()
-            if "connection" in err_str or "connect" in err_str or "refused" in err_str:
-                raise OllamaConnectionError(
-                    f"Failed to connect to Ollama service at {self.base_url}."
-                ) from err
-            elif "not found" in err_str or "404" in err_str:
-                raise ModelNotFoundError(
-                    f"Model '{self.model_name}' is not installed in local Ollama."
-                ) from err
+    # ----------------------------------------------------------------- private
+
+    def _post(self, path: str, payload: dict, model: str) -> dict:
+        last_error: ModelClientError | None = None
+        for attempt in range(self.retries + 1):
+            try:
+                resp = requests.post(f"{self.base_url}{path}", json=payload, timeout=self.timeout)
+            except requests.ConnectionError as exc:
+                last_error = OllamaConnectionError(str(exc))
+            except requests.Timeout as exc:
+                # A timeout is unlikely to succeed on retry; fail fast.
+                raise ModelTimeoutError(str(exc)) from exc
             else:
-                raise ModelClientError(f"Error communicating with Ollama: {err}") from err
+                if resp.status_code == 404:
+                    raise ModelNotFoundError(model)
+                if resp.status_code >= 500:
+                    last_error = ModelResponseError(f"Ollama server error {resp.status_code}: {resp.text[:200]}")
+                elif resp.status_code >= 400:
+                    raise ModelResponseError(f"Ollama error {resp.status_code}: {resp.text[:200]}")
+                else:
+                    try:
+                        return resp.json()
+                    except ValueError as exc:
+                        raise ModelResponseError("Response was not valid JSON") from exc
+            if attempt < self.retries:
+                time.sleep(1)
+        assert last_error is not None
+        raise last_error

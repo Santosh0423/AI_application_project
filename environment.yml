@@ -7,8 +7,10 @@ dependencies:
   - python=3.12
   - pip
   - pip:
-      - ollama
       - gradio
       - pydantic
+      - numpy
+      - requests
+      - beautifulsoup4
       - python-dotenv
       - pytest
