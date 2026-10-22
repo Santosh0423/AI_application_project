@@ -86,7 +86,7 @@ flowchart LR
 
 ---
 
-## Additional AI capability and justification
+##  6. Additional AI capability and justification
 
 ### Primary: Retrieval-Augmented Generation (RAG)
 **Why:** The main challenge is **finding and correctly using official information**. Rules about permits and benefits are specific and change over time. RAG:
@@ -95,18 +95,73 @@ flowchart LR
 - lets us **update knowledge** by re-running ingestion, without retraining a model.
 
 ### Secondary: Persistent user profile (memory)
-**Why:** Many answers depend on the user's situation (e.g. EU citizens don't need a residence permit but must register their right of residence). Remembering the profile gives **more relevant answers** and avoids repeating the same context.
+**Why:** Many answers depend on the user's situation (e.g., EU citizens don't need a residence permit but must register their right of residence). Remembering the profile gives **more relevant answers** and avoids repeating the same content.
 
 ### Not used: agents / MCP
 The workflow is always the same (retrieve → answer), so an agent that decides its own next step would add complexity and risk without real benefit. Live web access via MCP was not chosen because we want answers to come from a **controlled, verified** document set.
 
----
+  ## 7. Model and runtime
 
-### Capability justification
-The LLM doesn't know the student's course materials, and the materials are too long to fit into a single prompt. **RAG** solves this problem: it retrieves only the relevant parts of the uploaded files and gives them to the model as context. This:
-- keeps answers grounded in the actual course content and reduces hallucinations,
-- lets the app show **which file and page** an answer came from, so students can verify it,
-- works with any course, because students just upload new materials and no retraining is needed.
+| Purpose | Model | Runtime | Why |
+|---|---|---|---|
+| Answer generation | **`qwen2.5:7b`** | Ollama (local) | Good instruction-following (stays within context, cites sources), runs on a 16 GB laptop with partial GPU offload |
+| Fallback / low-RAM | `llama3.2:3b` | Ollama (local) | Runs on 8 GB machines; selectable via `.env` |
+| Embeddings | `nomic-embed-text` | Ollama (local) | Small (~300 MB), fast, good retrieval quality for English text |
+
+**Why local inference?** It's free, needs no API keys, keeps user questions private (personal immigration situations are sensitive), and works offline after setup.
+
+**Tested hardware:** AMD Ryzen 7 5800H, 16 GB RAM, NVIDIA GTX 1650 (4 GB).
+
+## 8. Knowledge sources
+
+Official, publicly available English-language guidance:
+
+| Authority | Topics |
+|---|---|
+| **Migri** (Finnish Immigration Service), migri.fi | Student residence permits, extensions, working rights, EU registration |
+| **DVV** (Digital and Population Data Services Agency), dvv.fi | Address registration, personal identity code |
+| **Kela**, kela.fi | Eligibility for social security, health insurance card |
+| **Vero** (Finnish Tax Administration), vero.fi | Tax card, taxation of student work |
+| **InfoFinland**, infofinland.fi | General guidance for newcomers |
+| **HAMK** international student pages | Arrival checklist, local practicalities |
+
+The date each document was collected is stored in its metadata. See `data/sources.md` for the full list.
+## 9. Project structure
+
+```
+.
+├── app/
+│   ├── main.py              # Entry point, starts Gradio
+│   ├── ui.py                # Gradio interface (no AI logic)
+│   ├── config.py            # Loads settings from .env
+│   ├── services/
+│   │   ├── assistant.py     # Main application logic
+│   │   ├── llm.py           # Ollama client + error handling
+│   │   └── profile.py       # User profile memory
+│   └── rag/
+│       ├── chunker.py       # Text splitting
+│       ├── store.py         # ChromaDB wrapper
+│       └── retriever.py     # Top-k retrieval
+├── scripts/
+│   └── ingest.py            # Builds the vector database from data/raw
+├── data/
+│   ├── raw/                 # Official documents (txt / pdf / md)
+│   └── sources.md           # Source list with URLs and dates
+├── evaluation/
+│   ├── questions.json       # Test cases with expected answers/sources
+│   ├── run_eval.py          # Runs evaluation and saves results
+│   └── results.md           # Recorded results and analysis
+├── tests/                   # Unit tests
+├── docs/
+│   ├── architecture.md
+│   └── decisions.md         # Technical decision records
+├── .env.example
+├── requirements.txt
+└── README.md
+```
+
+_(Adapt folder names to the starter template's structure.)_
+
 
 ## 10. Setup and execution
 
@@ -172,7 +227,6 @@ python evaluation/run_eval.py
 ```
 ## 11. Reliability and failure handling
 
-<<<<<<< HEAD
 | Situation | Behaviour |
 |---|---|
 | Ollama not running / model missing | Clear message: _"The AI model is unavailable. Please start Ollama."_ No crash. |
@@ -184,7 +238,6 @@ python evaluation/run_eval.py
 | Answer without citation | Output is checked; sources are always attached from retrieval metadata |
 | Vector database missing | App tells the user to run `scripts/ingest.py` |
 | Possibly outdated information | Every answer shows the disclaimer and links to the official page |
-=======
 
 ## 12. Evaluation
 
