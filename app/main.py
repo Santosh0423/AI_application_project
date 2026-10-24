@@ -24,17 +24,17 @@ def system_status(client: OllamaModelClient, store: VectorStore | None, settings
     try:
         missing = client.missing_models()
         if missing:
-            lines += [f"❌ Missing model `{m}` – run `ollama pull {m}`" for m in missing]
+            lines += [f"Problem: missing model `{m}` – run `ollama pull {m}`" for m in missing]
         else:
-            lines.append(f"✅ Ollama running (`{settings.model_name}`)")
+            lines.append(f"OK: Ollama running (`{settings.model_name}`)")
     except ModelClientError as exc:
-        lines.append(f"❌ {exc.user_message}")
+        lines.append(f"Problem: {exc.user_message}")
     if store is None:
-        lines.append(f"❌ {IndexNotFoundError.user_message}")
+        lines.append(f"Problem: {IndexNotFoundError.user_message}")
     else:
-        lines.append(f"✅ Knowledge base: {len(store)} passages")
+        lines.append(f"OK: Knowledge base: {len(store)} passages")
         if store.embed_model and store.embed_model != settings.embed_model:
-            lines.append(f"⚠️ Index was built with `{store.embed_model}`; re-run ingestion.")
+            lines.append(f"Warning: index was built with `{store.embed_model}`; re-run ingestion.")
     return "\n\n".join(lines)
 
 

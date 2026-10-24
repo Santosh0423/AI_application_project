@@ -4,10 +4,10 @@ Knowledge base for the RAG pipeline.
 
 | Path | Contents | In Git? |
 |---|---|---|
-| `sources.json` | List of the 33 official pages used (authority, title, URL) | ✅ |
-| `raw/*.md` | Text of each page, downloaded by `scripts/fetch_sources.py`. Each file starts with a header holding its title, URL, authority and download date | ✅ |
-| `index/` | Vector index (`vectors.npy` + `chunks.json`) built by `scripts/ingest.py` | ❌ generated |
-| `profile.json` | The user's saved profile (memory) | ❌ personal, generated |
+| `sources.json` | List of the 33 official pages used (authority, title, URL) | Yes |
+| `raw/*.md` | Text of each page, downloaded by `scripts/fetch_sources.py`. Each file starts with a header holding its title, URL, authority and download date | Yes |
+| `index/` | Vector index (`vectors.npy` + `chunks.json`) built by `scripts/ingest.py` | No (generated) |
+| `profile.json` | The user's saved profile (memory) | No (personal, generated) |
 
 ## Data governance
 

@@ -180,7 +180,7 @@ def to_markdown(settings, n_chunks: int, cases: list[dict]) -> str:
         "| ID | Type | Input | Expected | Got | Retrieval | Cited | Facts | Top sim | Time | Status |",
         "| :--- | :--- | :--- | :--- | :--- | :---: | :---: | :---: | :---: | :---: | :---: |",
     ]
-    mark = {True: "✅", False: "❌", None: "–"}
+    mark = {True: "yes", False: "no", None: "–"}
     for c in cases:
         k = c["checks"]
         text = c["input"] if len(c["input"]) < 70 else c["input"][:67] + "..."

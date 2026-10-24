@@ -27,11 +27,11 @@ EXAMPLES = [
     "Am I covered by Kela as an international student?",
 ]
 
-INTRO = """# 🇫🇮 Finland Bureaucracy Helper
+INTRO = """# Finland Bureaucracy Helper
 Ask about **residence permits, DVV registration, Kela, tax cards and working rights**.
 Answers come only from official sources (Migri, DVV, Kela, Vero, InfoFinland) and show where the information comes from.
 
-> ⚠️ General guidance only, **not legal advice**. Always confirm with the official authority."""
+> **Note:** General guidance only, **not legal advice**. Always confirm with the official authority."""
 
 
 def build_ui(
@@ -61,8 +61,8 @@ def build_ui(
         try:
             profile_store.save(profile)
         except OSError as exc:
-            return f"❌ Could not save profile: {exc}"
-        return f"✅ Profile saved: {profile.describe()}"
+            return f"Error: could not save profile: {exc}"
+        return f"Profile saved: {profile.describe()}"
 
     def clear():
         return [], [], ""
@@ -90,7 +90,7 @@ def build_ui(
                 clear_btn = gr.Button("Clear conversation")
 
             with gr.Column(scale=1):
-                gr.Markdown("### 👤 Your situation\nAnswers are tailored to this profile. It is saved on this computer only.")
+                gr.Markdown("### Your situation\nAnswers are tailored to this profile. It is saved on this computer only.")
                 citizenship = gr.Dropdown(CITIZENSHIP_OPTIONS, value=initial.citizenship, label="Citizenship")
                 student_type = gr.Dropdown(STUDENT_TYPE_OPTIONS, value=initial.student_type, label="Status")
                 stay = gr.Dropdown(STAY_OPTIONS, value=initial.stay_length, label="Planned stay in Finland")
@@ -98,7 +98,7 @@ def build_ui(
                 save_btn = gr.Button("Save profile")
                 profile_msg = gr.Markdown()
 
-                gr.Markdown("### ⚙️ System status")
+                gr.Markdown("### System status")
                 status = gr.Markdown(status_check())
                 refresh = gr.Button("Check again", size="sm")
 
