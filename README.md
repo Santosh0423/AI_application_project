@@ -177,25 +177,29 @@ _(Adapt folder names to the starter template's structure.)_
 ## 10. Setup and execution
 
 ### Prerequisites
-- Python 3.10+
-- [Ollama](https://ollama.com) installed and running
-- ~6 GB free disk space for models
+- Python 3.10 or newer
+- [Ollama](https://ollama.com/download) installed and running
+- About 6 GB of free disk space for the models
 
 ### 1. Clone the repository
 ```bash
-git clone <your-repo-url>
-cd <repo-folder>
+git clone https://github.com/Santosh0423/AI_application_project.git
+cd AI_application_project
 ```
 
-### 2. Create a virtual environment and install dependencies
+### 2. Install dependencies
+**Option A: venv**
 ```bash
 python -m venv .venv
-# Windows
-.venv\Scripts\activate
-# macOS / Linux
-source .venv/bin/activate
-
+.venv\Scripts\activate          # Windows
+source .venv/bin/activate       # macOS / Linux
 pip install -r requirements.txt
+```
+
+**Option B: Conda**
+```bash
+conda env create -f environment.yml
+conda activate dev-ai-project
 ```
 
 ### 3. Download the models
@@ -204,12 +208,13 @@ ollama pull qwen2.5:7b
 ollama pull nomic-embed-text
 ```
 
-### 4. Configure
+### 4. Configure (optional)
 ```bash
-cp .env.example .env
+copy .env.example .env          # Windows
+cp .env.example .env            # macOS / Linux
 ```
 Then edit `.env` if needed:
-```env
+```
 OLLAMA_BASE_URL=http://localhost:11434
 MODEL_NAME=qwen2.5:7b
 EMBED_MODEL=nomic-embed-text
@@ -218,23 +223,26 @@ CHUNK_OVERLAP=150
 TOP_K=4
 MIN_SIMILARITY=0.60
 REQUEST_TIMEOUT=300
-No API keys are required. **Never commit `.env`.**
+```
+The app also works without a `.env` file (these are the defaults). For a laptop with 8 GB RAM, use `MODEL_NAME=llama3.2:3b`. No API keys are required. **Never commit `.env`.**
 
 ### 5. Build the knowledge base
+The 33 official pages are already in `data/raw/`. Build the search index (about 1–2 minutes):
 ```bash
 python scripts/ingest.py
 ```
+Optional: download fresh copies of the pages first with `python scripts/fetch_sources.py`.
 
 ### 6. Run the application
 ```bash
 python -m app.main
 ```
-Open http://localhost:7860 in your browser.
+Open **http://127.0.0.1:7860** in your browser. The **System status** panel shows whether Ollama and the knowledge base are ready.
 
 ### 7. Run tests and evaluation
 ```bash
-pytest
-python evaluation/run_eval.py
+python -m pytest                    # 37 unit tests, no Ollama needed
+python evaluation/run_eval.py       # 29 evaluation cases, needs Ollama + index
 ```
 ## 11. Reliability and failure handling
 
@@ -252,7 +260,6 @@ python evaluation/run_eval.py
 
 ## 12. Evaluation
 
-## 12. Evaluation
 
 ### Approach
 `evaluation/test_cases.json` contains **29 cases**:
@@ -283,7 +290,6 @@ It asks every question through the same AI service as the app and writes `evalua
 
 **Unit tests:** 37 tests (`pytest`), all passing.
 
-**Findings:** _Write 2–3 sentences: what worked well, which cases failed and why._
 
 ## 13. Limitations
 
