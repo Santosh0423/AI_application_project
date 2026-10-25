@@ -280,15 +280,13 @@ It asks every question through the same AI service as the app and writes `evalua
 
 | Metric | Result |
 |---|---|
-| Pass rate (all 29 cases) | __ / 29 |
-| Retrieval hit (expected source found) | __ / 19 |
-| Expected source cited in answer | __ / 19 |
-| Key facts present in answer | __ / 19 |
-| Correct refusals (not covered + off-topic) | __ / 6 |
-| Invalid input rejected | __ / 2 |
-| Average response time | __ s |
+| Pass rate (all 29 cases) | 25 / 29 (86%), 4 partial, 0 failed |
+| Answerable questions answered | 21 / 21 |
+| Correct refusals (not covered + off-topic) | 6 / 6 |
+| Invalid input rejected | 2 / 2 |
+| Average response time | 41.0 s (max 194.2 s; off-topic refusals ~2 s) |
 
-**Unit tests:** 37 tests (`pytest`), all passing.
+Detailed metrics (retrieval hit rate, sources cited, key facts present) and every answer are in [`evaluation/evaluation_results.md`](evaluation/evaluation_results.md) and [`evaluation/test_cases.json`](evaluation/test_cases.json).
 
 
 ## 13. Limitations
