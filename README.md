@@ -1,8 +1,10 @@
+
+**Presentation video:**(https://drive.google.com/drive/folders/1gcJTnZM6jJ96IyynFetu01SYAJyXmXtM)
 # Finland Bureaucracy Helper
 An AI assistant that answers international students questions about Finnish bureaucracy (residence permits, DVV registration, Kela, tax card) using official documents, and shows the sources.
 
 **Disclaimer:** This application provides general guidance only and is **not legal advice**. Always confirm with the official authority (Migri, DVV, Kela, Vero).
-**Presentation video:**(https://drive.google.com/drive/folders/1gcJTnZM6jJ96IyynFetu01SYAJyXmXtM)
+
 
 ## 1. Team members
 
@@ -75,15 +77,19 @@ flowchart LR
     end
 ```
 ### components
-| Component | Responsibility |
-|---|---|
-| **UI (Gradio)** | Chat interface, profile settings, display of answers and sources. Contains **no AI logic**. |
-| **Assistant service** | Orchestrates the workflow: validate input → load profile → retrieve → build prompt → call model → validate output |
-| **Retriever** | Embeds the question and finds the top-k relevant chunks in ChromaDB |
-| **Ingestion script** | Loads documents, cleans text, splits into chunks, creates embeddings, stores them with metadata (source, URL, title) |
-| **LLM client** | Reusable wrapper around Ollama with timeouts, retries and error handling |
-| **Profile memory** | Stores the user's situation (persistent JSON), so it doesn't need to be repeated |
-| **Config** | All settings (model names, top-k, chunk size, Ollama URL) in `.env`, nothing hard-coded |
+| Component | File | Responsibility |
+|---|---|---|
+| UI (Gradio) | `app/ui.py` | Chat interface, profile settings, system status, answers with sources. Contains no AI logic. |
+| Entry point | `app/main.py` | Connects all components and starts the app. |
+| AI service | `src/services/ai_service.py` | Validate input → retrieve → build prompt → call model → check citations. |
+| Retriever | `src/capabilities/rag/retriever.py` | Embeds the question and finds the top-k chunks above the similarity threshold (0.60). |
+| Vector store | `src/capabilities/rag/store.py` | NumPy vector index with cosine similarity (`data/index`). |
+| Chunking | `src/capabilities/rag/documents.py` | Loads the pages and splits them into chunks (900 characters, 150 overlap). |
+| Download + cleaning | `scripts/fetch_sources.py` | Downloads the 33 official pages and removes menus, footers and cookie banners. |
+| Index building | `scripts/ingest.py` | Creates embeddings for all chunks and saves the index. |
+| Model client | `src/models/model_client.py` | Talks to Ollama (chat + embeddings) with timeouts, retry and clear error messages. |
+| Profile memory | `src/capabilities/memory.py` | Saves the user's situation in `data/profile.json`. |
+| Config | `src/config.py` | All settings in one place, read from `.env`. |
 
 ---
 
@@ -132,33 +138,37 @@ The date each document was collected is stored in its metadata. See `data/source
 ```
 .
 ├── app/
-│   ├── main.py              # Entry point, starts Gradio
-│   ├── ui.py                # Gradio interface (no AI logic)
-│   ├── config.py            # Loads settings from .env
-│   ├── services/
-│   │   ├── assistant.py     # Main application logic
-│   │   ├── llm.py           # Ollama client + error handling
-│   │   └── profile.py       # User profile memory
-│   └── rag/
-│       ├── chunker.py       # Text splitting
-│       ├── store.py         # ChromaDB wrapper
-│       └── retriever.py     # Top-k retrieval
+│   ├── main.py                    # Entry point: wires components, starts Gradio
+│   └── ui.py                      # Gradio interface (talks only to the AI service)
+├── src/
+│   ├── config.py                  # Settings from .env
+│   ├── models/model_client.py     # Ollama client (chat + embeddings), error handling
+│   ├── schemas/responses.py       # Structured answer (AIResponse, Source)
+│   ├── services/ai_service.py     # Main logic: validate → retrieve → prompt → check
+│   └── capabilities/
+│       ├── memory.py              # User profile memory
+│       └── rag/
+│           ├── documents.py       # Loading + chunking
+│           ├── store.py           # NumPy vector store
+│           ├── retriever.py       # Top-k search with similarity threshold
+│           └── ingest.py          # Builds the index
 ├── scripts/
-│   └── ingest.py            # Builds the vector database from data/raw
+│   ├── fetch_sources.py           # Downloads + cleans the 33 official pages
+│   └── ingest.py                  # Builds the search index
 ├── data/
-│   ├── raw/                 # Official documents (txt / pdf / md)
-│   └── sources.md           # Source list with URLs and dates
+│   ├── sources.json               # List of official pages
+│   └── raw/                       # Downloaded pages
 ├── evaluation/
-│   ├── questions.json       # Test cases with expected answers/sources
-│   ├── run_eval.py          # Runs evaluation and saves results
-│   └── results.md           # Recorded results and analysis
-├── tests/                   # Unit tests
+│   ├── test_cases.json            # 29 evaluation cases
+│   ├── run_eval.py                # Runs the evaluation
+│   └── evaluation_results.md      # Results
+├── tests/                         # 37 unit tests
 ├── docs/
 │   ├── architecture.md
-│   └── decisions.md         # Technical decision records
+│   └── project-decisions.md
 ├── .env.example
-├── requirements.txt
-└── README.md
+├── environment.yml
+└── requirements.txt
 ```
 
 _(Adapt folder names to the starter template's structure.)_
@@ -201,13 +211,13 @@ cp .env.example .env
 Then edit `.env` if needed:
 ```env
 OLLAMA_BASE_URL=http://localhost:11434
-LLM_MODEL=qwen2.5:7b
+MODEL_NAME=qwen2.5:7b
 EMBED_MODEL=nomic-embed-text
-CHUNK_SIZE=800
-CHUNK_OVERLAP=100
+CHUNK_SIZE=900
+CHUNK_OVERLAP=150
 TOP_K=4
-REQUEST_TIMEOUT=60
-```
+MIN_SIMILARITY=0.60
+REQUEST_TIMEOUT=300
 No API keys are required. **Never commit `.env`.**
 
 ### 5. Build the knowledge base
@@ -242,37 +252,38 @@ python evaluation/run_eval.py
 
 ## 12. Evaluation
 
+## 12. Evaluation
+
 ### Approach
-A set of **25–30 representative questions** in `evaluation/questions.json`, each with the expected key facts and expected source document.
+`evaluation/test_cases.json` contains **29 cases**:
 
-| Category | Examples | What we check |
-|---|---|---|
-| Standard questions | "How do I extend my student residence permit?" | Correct answer, correct source |
-| Profile-dependent | Same question for EU vs non-EU profile | Answer changes correctly |
-| Not in documents | "What is the rent in Helsinki?" | Says "I don't know", no invented facts |
-| Off-topic | "Write me a poem" | Declines politely |
-| Tricky / ambiguous | "Can I work full-time?" | Mentions conditions (holidays vs term time) |
-| 🔧 Failure cases | Ollama stopped, empty input | Controlled error message |
+| Category | Cases | Examples | What we check |
+|---|---|---|---|
+| Successful cases | 17 | "Can I work while studying? How many hours?" | Answered, correct source cited, key fact present (e.g. 30 h/week, €800/month, 45 credits) |
+| Difficult cases | 4 | Same question for EU vs non-EU profile; follow-up "What about during holidays?" | Answer fits the profile / uses the previous question |
+| Failure cases | 8 | "What is the capital of France?", bus ticket prices, empty input | Refuses or rejects instead of guessing |
 
-### Metrics
-- **Retrieval hit rate:** is the expected source among the top-k retrieved chunks?
-- **Answer correctness:** manually rated 0 / 1 / 2 (wrong / partial / correct)
-- **Grounding:** does the answer contain claims that are not in the sources? (yes/no)
-- **Correct refusal:** for unanswerable questions, does it decline instead of guessing?
-- **Response time:** average seconds per answer
+Run it with:
+```
+python evaluation/run_eval.py
+```
+It asks every question through the same AI service as the app and writes `evaluation/evaluation_results.md`.
 
 ### Results
-_To be completed. See `evaluation/results.md`._
 
 | Metric | Result |
 |---|---|
-| Retrieval hit rate | _x / N_ |
-| Correct answers | _x / N_ |
-| Grounded answers | _x / N_ |
-| Correct refusals | _x / N_ |
-| Avg. response time | _x s_ |
+| Pass rate (all 29 cases) | __ / 29 |
+| Retrieval hit (expected source found) | __ / 19 |
+| Expected source cited in answer | __ / 19 |
+| Key facts present in answer | __ / 19 |
+| Correct refusals (not covered + off-topic) | __ / 6 |
+| Invalid input rejected | __ / 2 |
+| Average response time | __ s |
 
----
+**Unit tests:** 37 tests (`pytest`), all passing.
+
+**Findings:** _Write 2–3 sentences: what worked well, which cases failed and why._
 
 ## 13. Limitations
 
