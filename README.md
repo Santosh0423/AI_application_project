@@ -2,6 +2,7 @@
 An AI assistant that answers international students questions about Finnish bureaucracy (residence permits, DVV registration, Kela, tax card) using official documents, and shows the sources.
 
 **Disclaimer:** This application provides general guidance only and is **not legal advice**. Always confirm with the official authority (Migri, DVV, Kela, Vero).
+**Presentation video:**(https://drive.google.com/drive/folders/1gcJTnZM6jJ96IyynFetu01SYAJyXmXtM)
 
 ## 1. Team members
 
